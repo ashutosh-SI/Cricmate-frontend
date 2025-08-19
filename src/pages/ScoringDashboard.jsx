@@ -9,6 +9,7 @@ import {
 } from '../features/scoring/scoringSlice.js';
 import './ScoringDashboard.css';
 import ReactPlayer from 'react-player';
+import pitchImg from '../assets/pitch-map.png';
 
 const ScoringDashboard = () => {
   const dispatch = useDispatch();
@@ -37,6 +38,7 @@ const ScoringDashboard = () => {
           const onStrike = batting.OnStrike || {};
           const nonStriker = batting.NonStriker || {};
           const bowler = sd.BowlingParameters?.Bowler || {};
+          const bp = sd.BattingParameters || {};
 
           return (
             <div className="scoring-card" key={entry.index}>
@@ -45,9 +47,7 @@ const ScoringDashboard = () => {
                 onClick={() => setModalUrl(entry.video)}
               >
                 <span className="play-overlay">▶</span>
-                {!loadedVideos.has(entry.index) && (
-                  <div className="video-skeleton" />
-                )}
+                {!loadedVideos.has(entry.index) && <div className="video-skeleton" />}
                 <video
                   src={entry.video}
                   preload="metadata"
