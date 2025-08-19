@@ -1,0 +1,75 @@
+.scoring-interface-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  color: var(--clr-text);
+}
+
+.back-btn {
+  background: var(--clr-primary);
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.json-block {
+  background: #121212;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.8rem;
+  border: 1px solid #2a2a2a;
+  margin-bottom: 1rem;
+}
+
+.section {
+  margin-bottom: 1.5rem;
+  background: var(--clr-surface);
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.section h3 {
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  color: var(--clr-primary);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  fill: var(--clr-primary);
+}
+
+.icon-sm {
+  width: 14px;
+  height: 14px;
+  fill: var(--clr-accent);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(120px,1fr));
+  gap: .5rem .75rem;
+  font-size: .85rem;
+}
+
+.grid div strong {
+  color: var(--clr-accent);
+  display: block;
+}
+
+.data-card .label {
+  color: var(--clr-accent);
+  font-weight: 600;
+}
+
+.data-card > div {
+  margin: 0.2rem 0;
+}

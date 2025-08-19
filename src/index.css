@@ -1,0 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;600;700&display=swap');
+
+:root {
+  --clr-bg: #0d0113;
+  --clr-primary: #e83f7e;
+  --clr-accent: #8193c0;
+  --clr-surface: #1a1a1a;
+  --clr-text: #fbf9f9;
+}
+
+body {
+  margin: 0;
+  font-family: 'Clash Display', system-ui, sans-serif;
+  background: var(--clr-bg);
+  color: var(--clr-text);
+  min-height: 100vh;
+}
+
+/* Brand the active timeline segment of native video controls */
+video {
+  accent-color: var(--clr-primary) !important;
+}
+
+/* WebKit fallback */
+
+video::-webkit-media-controls-enclosure .-internal-track-segment-highlight-before {
+  background: var(--clr-primary) !important;
+}

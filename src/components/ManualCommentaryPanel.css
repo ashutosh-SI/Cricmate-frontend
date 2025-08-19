@@ -1,0 +1,28 @@
+.manual-panel {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 330px;
+  width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 998;
+}
+
+.manual-panel h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: #646cff;
+}
+
+.manual-panel textarea {
+  width: 100%;
+  resize: vertical;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}

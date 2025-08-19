@@ -1,0 +1,13 @@
+.vjs-theme-city {
+  --vjs-color-primary: #00a37a;
+  --vjs-font-family: 'Inter', sans-serif;
+}
+
+.vjs-theme-city .vjs-control-bar {
+  border-top: 1px solid #1e1e1e;
+}
+
+.video-js {
+  width: 100% !important;
+  height: 64vh !important; /* 64% of viewport height */
+}
