@@ -16,6 +16,16 @@ const ScoringDashboard = () => {
   const dispatch = useDispatch();
   const items = useSelector(selectScoringItems);
   const [modalUrl, setModalUrl] = useState(null);
+
+  // Function to convert text to Pascal case (Title Case)
+  const toPascalCase = (text) => {
+    if (!text) return text;
+    return text
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
   const [loadedVideos, setLoadedVideos] = useState(new Set());
   const [visibleCards, setVisibleCards] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -184,6 +194,42 @@ const ScoringDashboard = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
+                  {/* Left overlay - Over info and event */}
+                  <motion.div 
+                    className="video-overlay-left"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
+                    <motion.div className="over-info">
+                      Over {entry.displayover.toFixed(1)}
+                    </motion.div>
+                    <motion.span 
+                      className="event-badge-overlay"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      {entry.event}
+                    </motion.span>
+                  </motion.div>
+
+                  {/* Right overlay - View scoring button */}
+                  <motion.div 
+                    className="video-overlay-right"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.6 }}
+                  >
+                    <Link 
+                      className="view-scoring-overlay" 
+                      to={`/scoring/${entry.index}`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      View →
+                    </Link>
+                  </motion.div>
+
                   <motion.span 
                     className="play-overlay"
                     initial={{ scale: 0 }}
@@ -225,41 +271,6 @@ const ScoringDashboard = () => {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <motion.div 
-                    className="score-header"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    <motion.h3 
-                      className="over-title"
-                      initial={{ scale: 0.9 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.4, type: "spring" }}
-                    >
-                      Over {entry.displayover.toFixed(1)} 
-                      <motion.span 
-                        className="event-badge"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.5 }}
-                      >
-                        {entry.event}
-                      </motion.span>
-                    </motion.h3>
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.6 }}
-                    >
-                      <Link 
-                        className="view-scoring" 
-                        to={`/scoring/${entry.index}`}
-                      >
-                        View Scoring →
-                      </Link>
-                    </motion.div>
-                  </motion.div>
                   
                   <motion.div 
                     className="player-stats"
@@ -268,9 +279,9 @@ const ScoringDashboard = () => {
                     transition={{ delay: 0.7 }}
                   >
                     {[
-                      { label: 'Batter', value: onStrike.batsname, icon: '🏏' },
-                      { label: 'Non-Striker', value: nonStriker.nonstrikername, icon: '🏃' },
-                      { label: 'Bowler', value: bowler.bowlername, icon: '🥎' },
+                      { label: 'Batter', value: toPascalCase(onStrike.batsname), icon: '🏏' },
+                      { label: 'Non-Striker', value: toPascalCase(nonStriker.nonstrikername), icon: '🏃' },
+                      { label: 'Bowler', value: toPascalCase(bowler.bowlername), icon: '🥎' },
                       { label: 'Bowling Style', value: sd.BowlingParameters?.BowlingStyle, icon: '⚡' }
                     ].map((stat, statIndex) => (
                       <motion.div

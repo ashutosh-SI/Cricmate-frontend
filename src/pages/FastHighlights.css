@@ -3,19 +3,126 @@
   margin: 0 auto;
   padding: .5rem 1rem;
   perspective: 1000px;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+/* Smooth transitions for over changes */
+.highlights-3d-container {
+  transition: opacity 0.3s ease;
+}
+
+.highlights-3d-container.changing {
+  opacity: 0.5;
+}
+
+/* Highlights Header */
+.highlights-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3rem;
+  gap: 2rem;
 }
 
 .highlights-title {
   font-size: 2.25rem;
   font-weight: 700;
-  margin-bottom: 2rem;
+  margin: 0;
   font-family: 'Clash Display', sans-serif;
   background: linear-gradient(135deg, var(--clr-primary), var(--clr-accent));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-align: center;
   letter-spacing: -0.02em;
+}
+
+/* Over Navigation */
+.over-navigation {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-arrow {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid var(--clr-primary);
+  background: linear-gradient(135deg, var(--clr-primary), #ff4081);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(232, 63, 126, 0.3);
+}
+
+.nav-arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.nav-arrow:hover:not(:disabled) {
+  box-shadow: 0 6px 16px rgba(232, 63, 126, 0.5);
+}
+
+.over-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 80px;
+}
+
+.over-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--clr-text-light);
+  font-family: 'Clash Display', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.over-number {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--clr-primary);
+  font-family: 'Clash Display', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+.over-indicators {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.over-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.over-dot.active {
+  background: var(--clr-primary);
+  box-shadow: 0 0 8px rgba(232, 63, 126, 0.5);
+}
+
+.swipe-hint {
+  font-size: 0.7rem;
+  color: var(--clr-text-light);
+  font-family: 'Clash Display', sans-serif;
+  font-weight: 400;
+  margin: 0.25rem 0 0 0;
+  opacity: 0.7;
 }
 
 .loading-container {
@@ -110,6 +217,11 @@
   top: 50%;
   margin-left: -160px;
   margin-top: -210px;
+}
+
+.highlight-card-3d.vertical-card {
+  height: 420px; /* Same height as horizontal cards */
+  margin-top: -210px; /* Same margin as horizontal cards */
 }
 
 .highlight-card-3d.pulled {
@@ -235,13 +347,15 @@
 
 .video-preview-3d {
   height: 200px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
   background: rgba(0,0,0,0.3);
   margin: 1rem;
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.1);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .preview-placeholder {
@@ -249,7 +363,19 @@
   color: var(--clr-text-light);
 }
 
-.preview-placeholder.vertical {
+.vertical-card .video-preview-3d {
+  height: 200px; /* Adjusted to fit same card height */
+  width: 112px; /* Maintain 9:16 ratio: 200 * (9/16) = 112.5 */
+  margin: 1rem auto; /* Center the preview */
+  aspect-ratio: 9/16; /* Enforce 9:16 aspect ratio */
+}
+
+.vertical-card .preview-video {
+  object-fit: cover;
+  object-position: center;
+}
+
+.video-preview-overlay.vertical {
   transform: scale(0.8);
 }
 
@@ -263,6 +389,42 @@
   margin: 0;
   font-family: 'Clash Display', sans-serif;
   font-weight: 500;
+}
+
+.preview-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  opacity: 0.7;
+}
+
+.video-preview-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.5);
+  color: var(--clr-text-light);
+  text-align: center;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.video-preview-3d:hover .video-preview-overlay {
+  background: rgba(0,0,0,0.3);
+}
+
+.video-preview-3d:hover .preview-video {
+  opacity: 1;
 }
 
 .card-controls-3d {
@@ -643,11 +805,11 @@
   position: relative;
 }
 
-/* Split Screen Styles */
-.split-screen-container {
+/* Single Video Container */
+.single-video-container {
   position: relative;
   width: 100%;
-  height: 70vh;
+  height: 80vh;
   overflow: hidden;
   border-radius: 16px;
   background: #000;
@@ -682,10 +844,12 @@
   font-size: 0.9rem;
   z-index: 10;
   backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
 }
 
-.video-label.ai {
+.single-video-container .video-label {
   background: var(--clr-primary);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .split-slider {
@@ -729,7 +893,7 @@
   transform: translate(-50%, -50%) scale(1.1);
 }
 
-/* Comparison Overlay */
+/* AI Enhancement Overlay */
 .comparison-overlay {
   position: absolute;
   top: 1rem;
@@ -738,9 +902,23 @@
   border: 1px solid rgba(255,255,255,0.2);
   border-radius: 12px;
   padding: 1.5rem;
-  max-width: 300px;
+  max-width: 320px;
   z-index: 20;
   backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  transition: all 0.3s ease;
+}
+
+/* Overlay positioning for vertical videos */
+.comparison-overlay.vertical-video-overlay {
+  position: fixed;
+  top: 50%;
+  left: 1rem;
+  right: auto;
+  transform: translateY(-50%);
+  max-width: 300px;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 .overlay-content h3 {
@@ -842,13 +1020,14 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.9) 70%, rgba(0,0,0,0.95) 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.7) 70%, rgba(0,0,0,0.8) 100%);
   padding: 1rem 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  backdrop-filter: blur(10px);
   border-radius: 0 0 16px 16px;
+  transition: opacity 0.3s ease;
+  pointer-events: auto;
 }
 
 /* Play/Pause Button */
@@ -1366,6 +1545,48 @@
     margin-left: -140px;
     margin-top: -180px;
   }
+  
+  .highlight-card-3d.vertical-card {
+    height: 360px; /* Same height as horizontal cards */
+    margin-top: -180px; /* Same margin as horizontal cards */
+  }
+  
+  .vertical-card .video-preview-3d {
+    height: 200px; /* Adjust to fit same card height */
+    width: 112px; /* Maintain 9:16 ratio */
+  }
+}
+
+@media (max-width: 1024px) {
+  /* Tablet styles for vertical video overlay */
+  .comparison-overlay.vertical-video-overlay {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    right: auto;
+    transform: none;
+    max-width: 280px;
+    max-height: 70vh;
+  }
+
+  /* Header Tablet Styles */
+  .highlights-header {
+    margin-bottom: 2rem;
+  }
+
+  .highlights-title {
+    font-size: 2rem;
+  }
+
+  .nav-arrow {
+    width: 45px;
+    height: 45px;
+    font-size: 1.3rem;
+  }
+
+  .over-number {
+    font-size: 1.5rem;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1374,8 +1595,38 @@
     perspective: 800px;
   }
   
+  /* Header Mobile Styles */
+  .highlights-header {
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
   .highlights-title {
     font-size: 1.75rem;
+  }
+
+  .over-navigation {
+    gap: 1.5rem;
+  }
+
+  .nav-arrow {
+    width: 42px;
+    height: 42px;
+    font-size: 1.2rem;
+  }
+
+  .over-number {
+    font-size: 1.4rem;
+  }
+
+  .over-label {
+    font-size: 0.8rem;
+  }
+
+  .swipe-hint {
+    font-size: 0.65rem;
   }
   
   .highlights-3d-container {
@@ -1392,6 +1643,16 @@
     height: 320px;
     margin-left: -130px;
     margin-top: -160px;
+  }
+  
+  .highlight-card-3d.vertical-card {
+    height: 320px; /* Same height as horizontal cards */
+    margin-top: -160px; /* Same margin as horizontal cards */
+  }
+  
+  .vertical-card .video-preview-3d {
+    height: 160px; /* Adjust to fit same card height */
+    width: 90px; /* Maintain 9:16 ratio */
   }
   
   .stack-title {
@@ -1434,6 +1695,19 @@
     right: 0;
     margin-top: 1rem;
     max-width: none;
+    width: 100%;
+  }
+
+  .comparison-overlay.vertical-video-overlay {
+    position: relative;
+    top: 0;
+    left: 0;
+    transform: none;
+    margin-top: 1rem;
+    max-width: none;
+    width: 100%;
+    max-height: none;
+    overflow-y: visible;
   }
 }
 

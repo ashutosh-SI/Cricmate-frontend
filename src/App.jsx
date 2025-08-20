@@ -15,17 +15,17 @@ function App() {
   return (
     <div className="App">
       <nav>
-        <Link to="/">Home</Link> |{' '}
-        <Link to="/aicommentary">AI Commentary</Link> |{' '}
-        <Link to="/scoring">Scoring Dashboard</Link> |{' '}
+        <Link to="/">Home</Link> {' '}
+        <Link to="/scoring">Scoring Dashboard</Link> {' '}
         <Link to="/highlights">Fast Highlights</Link>
+        <Link to="/aicommentary">AI Commentary</Link> {' '}
       </nav>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/aicommentary" element={<AiCommentary />} />
         <Route path="/scoring" element={<ScoringDashboard />} />
         <Route path="/scoring/:id" element={<ScoringInterface />} />
         <Route path="/highlights" element={<FastHighlights />} />
+        <Route path="/aicommentary" element={<AiCommentary />} />
       </Routes>
     </div>
   );

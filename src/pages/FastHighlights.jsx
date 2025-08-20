@@ -17,6 +17,99 @@ const FastHighlights = () => {
   const status = useSelector(selectHighlightsStatus);
   const error = useSelector(selectHighlightsError);
   
+  // Mock data for multiple overs
+  const mockOversData = [
+    {
+      overNumber: 1,
+      highlights: [
+        {
+          index: 1,
+          over_number: 1.1,
+          video_h_path: '/mock-videos/over1-ball1-horizontal.mp4',
+          video_h_ai_path: '/mock-videos/over1-ball1-horizontal-ai.mp4',
+          video_v_path: '/mock-videos/over1-ball1-vertical.mp4',
+          video_v_ai_path: '/mock-videos/over1-ball1-vertical-ai.mp4',
+          ai_audio_path: '/mock-audio/over1-ball1-commentary.mp3'
+        },
+        {
+          index: 2,
+          over_number: 1.2,
+          video_h_path: '/mock-videos/over1-ball2-horizontal.mp4',
+          video_h_ai_path: '/mock-videos/over1-ball2-horizontal-ai.mp4',
+          video_v_path: '/mock-videos/over1-ball2-vertical.mp4',
+          video_v_ai_path: '/mock-videos/over1-ball2-vertical-ai.mp4',
+          ai_audio_path: '/mock-audio/over1-ball2-commentary.mp3'
+        },
+        {
+          index: 3,
+          over_number: 1.3,
+          video_h_path: '/mock-videos/over1-ball3-horizontal.mp4',
+          video_h_ai_path: '/mock-videos/over1-ball3-horizontal-ai.mp4',
+          video_v_path: '/mock-videos/over1-ball3-vertical.mp4',
+          video_v_ai_path: '/mock-videos/over1-ball3-vertical-ai.mp4',
+          ai_audio_path: '/mock-audio/over1-ball3-commentary.mp3'
+        }
+      ]
+    },
+    {
+      overNumber: 2,
+      highlights: [
+        {
+          index: 4,
+          over_number: 2.1,
+          video_h_path: '/mock-videos/over2-ball1-horizontal.mp4',
+          video_h_ai_path: '/mock-videos/over2-ball1-horizontal-ai.mp4',
+          video_v_path: '/mock-videos/over2-ball1-vertical.mp4',
+          video_v_ai_path: '/mock-videos/over2-ball1-vertical-ai.mp4',
+          ai_audio_path: '/mock-audio/over2-ball1-commentary.mp3'
+        },
+        {
+          index: 5,
+          over_number: 2.2,
+          video_h_path: '/mock-videos/over2-ball2-horizontal.mp4',
+          video_h_ai_path: '/mock-videos/over2-ball2-horizontal-ai.mp4',
+          video_v_path: '/mock-videos/over2-ball2-vertical.mp4',
+          video_v_ai_path: '/mock-videos/over2-ball2-vertical-ai.mp4',
+          ai_audio_path: '/mock-audio/over2-ball2-commentary.mp3'
+        },
+        {
+          index: 6,
+          over_number: 2.3,
+          video_h_path: '/mock-videos/over2-ball3-horizontal.mp4',
+          video_h_ai_path: '/mock-videos/over2-ball3-horizontal-ai.mp4',
+          video_v_path: '/mock-videos/over2-ball3-vertical.mp4',
+          video_v_ai_path: '/mock-videos/over2-ball3-vertical-ai.mp4',
+          ai_audio_path: '/mock-audio/over2-ball3-commentary.mp3'
+        }
+      ]
+    },
+    {
+      overNumber: 3,
+      highlights: [
+        {
+          index: 7,
+          over_number: 3.1,
+          video_h_path: '/mock-videos/over3-ball1-horizontal.mp4',
+          video_h_ai_path: '/mock-videos/over3-ball1-horizontal-ai.mp4',
+          video_v_path: '/mock-videos/over3-ball1-vertical.mp4',
+          video_v_ai_path: '/mock-videos/over3-ball1-vertical-ai.mp4',
+          ai_audio_path: '/mock-audio/over3-ball1-commentary.mp3'
+        },
+        {
+          index: 8,
+          over_number: 3.2,
+          video_h_path: '/mock-videos/over3-ball2-horizontal.mp4',
+          video_h_ai_path: '/mock-videos/over3-ball2-horizontal-ai.mp4',
+          video_v_path: '/mock-videos/over3-ball2-vertical.mp4',
+          video_v_ai_path: '/mock-videos/over3-ball2-vertical-ai.mp4',
+          ai_audio_path: '/mock-audio/over3-ball2-commentary.mp3'
+        }
+      ]
+    }
+  ];
+
+  // Carousel state for overs
+  const [currentOverIndex, setCurrentOverIndex] = useState(0);
   const [visibleCards, setVisibleCards] = useState([]);
   const [modalUrl, setModalUrl] = useState(null);
   const [audioUrl, setAudioUrl] = useState(null);
@@ -25,7 +118,7 @@ const FastHighlights = () => {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
-  const [showControls, setShowControls] = useState(true);
+  const [showControls, setShowControls] = useState(false);
   const [seeking, setSeeking] = useState(false);
   const [videoLoading, setVideoLoading] = useState(true);
   const [videoReady, setVideoReady] = useState(false);
@@ -42,19 +135,69 @@ const FastHighlights = () => {
   
   // 3D Card states
   const [selectedCard, setSelectedCard] = useState(null);
-  const [cardFlipped, setCardFlipped] = useState({});
   const [pulledCard, setPulledCard] = useState(null);
   
   // Enhanced video player states
-  const [comparisonMode, setComparisonMode] = useState(false);
-  const [splitPosition, setSplitPosition] = useState(50);
   const [showOverlay, setShowOverlay] = useState(false);
   const [currentVideoType, setCurrentVideoType] = useState('normal'); // 'normal' or 'ai'
+  const [isVerticalVideo, setIsVerticalVideo] = useState(false);
+
+  // Touch/swipe states
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
   
   const playerRef = useRef(null);
   const waveformRef = useRef(null);
   const wavesurfer = useRef(null);
   const audioElementRef = useRef(null);
+
+  // Get current data (mock data or real data)
+  const currentOverData = mockOversData[currentOverIndex];
+  const currentItems = status === 'succeeded' && items.length > 0 ? items : currentOverData?.highlights || [];
+
+  // Carousel navigation functions
+  const goToNextOver = () => {
+    setCurrentOverIndex((prev) => (prev + 1) % mockOversData.length);
+    setVisibleCards([]);
+    setPulledCard(null);
+  };
+
+  const goToPrevOver = () => {
+    setCurrentOverIndex((prev) => (prev - 1 + mockOversData.length) % mockOversData.length);
+    setVisibleCards([]);
+    setPulledCard(null);
+  };
+
+  const goToOver = (index) => {
+    setCurrentOverIndex(index);
+    setVisibleCards([]);
+    setPulledCard(null);
+  };
+
+  // Touch/swipe handlers
+  const handleTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe && mockOversData.length > 1) {
+      goToNextOver();
+    }
+    if (isRightSwipe && mockOversData.length > 1) {
+      goToPrevOver();
+    }
+  };
 
   useEffect(() => {
     if (status === 'idle') {
@@ -62,20 +205,40 @@ const FastHighlights = () => {
     }
   }, [status, dispatch]);
 
-  // Staggered card reveal
+  // Staggered card reveal - updated to work with current over
   useEffect(() => {
-    if (status === 'succeeded' && items.length > 0) {
+    if (currentItems.length > 0) {
       setVisibleCards([]);
-      items.forEach((_, index) => {
+      currentItems.forEach((_, index) => {
         setTimeout(() => {
           setVisibleCards(prev => [...prev, index]);
         }, index * 100);
       });
     }
-  }, [status, items.length]);
+  }, [currentItems.length, currentOverIndex]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (mockOversData.length <= 1) return;
+      
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToPrevOver();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goToNextOver();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mockOversData.length]);
 
   // Video control handlers
-  const handlePlayPause = () => setIsPlaying(!isPlaying);
+  const handlePlayPause = () => {
+    setIsPlaying(!isPlaying);
+  };
   const handleProgress = (state) => {
     if (!seeking) {
       setPlayed(state.played);
@@ -114,6 +277,15 @@ const FastHighlights = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Video controls visibility handlers
+  const handleVideoMouseEnter = () => {
+    setShowControls(true);
+  };
+
+  const handleVideoMouseLeave = () => {
+    setShowControls(false);
+  };
+
   // Reset video states when modal opens
   useEffect(() => {
     if (modalUrl) {
@@ -122,21 +294,15 @@ const FastHighlights = () => {
       setIsPlaying(false);
       setPlayed(0);
       setDuration(0);
+      setShowControls(true); // Show controls when video loads
     }
   }, [modalUrl]);
 
-  const openVideoModal = (videoUrl) => {
-    setModalUrl(videoUrl);
-    setComparisonMode(false);
-    setSplitPosition(50);
-    setCurrentVideoType('normal');
-  };
-
-  const openComparisonModal = (normalUrl, aiUrl) => {
+  const openVideoModal = (normalUrl, aiUrl, isVertical = false) => {
     setModalUrl({ normal: normalUrl, ai: aiUrl });
-    setComparisonMode(true);
-    setSplitPosition(50);
     setCurrentVideoType('normal');
+    setShowOverlay(false); // Reset overlay state
+    setIsVerticalVideo(isVertical);
   };
 
   const openAudioModal = (audioUrl) => {
@@ -148,32 +314,22 @@ const FastHighlights = () => {
     setPulledCard(pulledCard === cardId ? null : cardId);
   };
 
-  const handleCardFlip = (cardId) => {
-    setCardFlipped(prev => ({
-      ...prev,
-      [cardId]: !prev[cardId]
-    }));
-  };
+
 
   const handleCardSelect = (cardId) => {
     setSelectedCard(selectedCard === cardId ? null : cardId);
   };
 
   // Enhanced video player functions
-  const toggleComparisonMode = () => {
-    setComparisonMode(!comparisonMode);
-  };
-
-  const handleSplitDrag = (e) => {
-    if (comparisonMode && modalUrl?.normal && modalUrl?.ai) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const position = ((e.clientX - rect.left) / rect.width) * 100;
-      setSplitPosition(Math.max(0, Math.min(100, position)));
-    }
-  };
-
   const toggleVideoType = () => {
-    setCurrentVideoType(prev => prev === 'normal' ? 'ai' : 'normal');
+    setCurrentVideoType(prev => {
+      const newType = prev === 'normal' ? 'ai' : 'normal';
+      // Hide overlay when switching to normal video
+      if (newType === 'normal') {
+        setShowOverlay(false);
+      }
+      return newType;
+    });
   };
 
   // Initialize WaveSurfer when audio modal opens
@@ -508,15 +664,60 @@ const FastHighlights = () => {
   }
 
   return (
-    <div className="highlights-container">
-      <motion.h2 
+    <div 
+      className="highlights-container"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      <motion.div
+        className="highlights-header"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="highlights-title"
       >
-        Fast Highlight Packages
-      </motion.h2>
+        <h2 className="highlights-title">
+          Fast Highlight Packages
+        </h2>
+        
+        <div className="over-navigation">
+          <motion.button
+            className="nav-arrow left"
+            onClick={goToPrevOver}
+            whileHover={{ scale: 1.1, x: -2 }}
+            whileTap={{ scale: 0.9 }}
+            disabled={mockOversData.length <= 1}
+            title="Previous Over (←)"
+          >
+            ←
+          </motion.button>
+          
+          <div className="over-display">
+            <span className="over-label">Over</span>
+            <span className="over-number">{currentOverData?.overNumber}</span>
+            <div className="over-indicators">
+              {mockOversData.map((_, index) => (
+                <div 
+                  key={index}
+                  className={`over-dot ${index === currentOverIndex ? 'active' : ''}`}
+                />
+              ))}
+            </div>
+            <p className="swipe-hint">Swipe or use arrow keys</p>
+          </div>
+          
+          <motion.button
+            className="nav-arrow right"
+            onClick={goToNextOver}
+            whileHover={{ scale: 1.1, x: 2 }}
+            whileTap={{ scale: 0.9 }}
+            disabled={mockOversData.length <= 1}
+            title="Next Over (→)"
+          >
+            →
+          </motion.button>
+        </div>
+      </motion.div>
       
       <div className="highlights-3d-container">
         {/* Horizontal Video Stack (Left) */}
@@ -527,18 +728,17 @@ const FastHighlights = () => {
           </h3>
           <div className="card-stack">
             <AnimatePresence>
-              {items.map((highlight, index) => {
+              {currentItems.map((highlight, index) => {
                 const isVisible = visibleCards.includes(index);
                 const cardId = `horizontal-${highlight.index}`;
                 const isPulled = pulledCard === cardId;
-                const isFlipped = cardFlipped[cardId];
                 
                 if (!isVisible) return null;
                 
                 return (
                   <motion.div
                     key={cardId}
-                    className={`highlight-card-3d horizontal-card ${isPulled ? 'pulled' : ''} ${isFlipped ? 'flipped' : ''}`}
+                    className={`highlight-card-3d horizontal-card ${isPulled ? 'pulled' : ''}`}
                     initial={{ opacity: 0, x: -100, rotateY: -15 }}
                     animate={{ 
                       opacity: 1, 
@@ -575,23 +775,18 @@ const FastHighlights = () => {
                           transition={{ delay: 0.2 }}
                         >
                           <h4 className="over-title-3d">Over {highlight.over_number}</h4>
-                          <div className="card-actions">
-                            <motion.button
-                              className="flip-btn"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleCardFlip(cardId);
-                              }}
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                            >
-                              🔄
-                            </motion.button>
-                          </div>
                         </motion.div>
 
                         <div className="video-preview-3d">
-                          <div className="preview-placeholder">
+                          <video 
+                            className="preview-video"
+                            src={highlight.video_h_path}
+                            preload="metadata"
+                            muted
+                            playsInline
+                            poster=""
+                          />
+                          <div className="video-preview-overlay">
                             <span className="preview-icon">📺</span>
                             <p>Horizontal Video</p>
                           </div>
@@ -602,55 +797,17 @@ const FastHighlights = () => {
                             className="video-btn-3d normal"
                             onClick={(e) => {
                               e.stopPropagation();
-                              openVideoModal(highlight.video_h_path);
+                              openVideoModal(highlight.video_h_path, highlight.video_h_ai_path, false);
                             }}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                           >
-                            ▶ Normal
-                          </motion.button>
-                          <motion.button
-                            className="video-btn-3d ai"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openVideoModal(highlight.video_h_ai_path);
-                            }}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            🤖 AI Enhanced
+                            ▶ Play Video
                           </motion.button>
                         </div>
                       </div>
 
-                      {/* Back of card */}
-                      <div className="card-face card-back">
-                        <div className="card-back-content">
-                          <h4>Compare Versions</h4>
-                          <motion.button
-                            className="comparison-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openComparisonModal(highlight.video_h_path, highlight.video_h_ai_path);
-                            }}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            🔀 Split Screen Compare
-                          </motion.button>
-                          <motion.button
-                            className="flip-btn back-flip"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCardFlip(cardId);
-                            }}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                          >
-                            ↩ Back
-                          </motion.button>
-                        </div>
-                      </div>
+
                     </div>
                   </motion.div>
                 );
@@ -667,18 +824,17 @@ const FastHighlights = () => {
           </h3>
           <div className="card-stack">
             <AnimatePresence>
-              {items.map((highlight, index) => {
+              {currentItems.map((highlight, index) => {
                 const isVisible = visibleCards.includes(index);
                 const cardId = `vertical-${highlight.index}`;
                 const isPulled = pulledCard === cardId;
-                const isFlipped = cardFlipped[cardId];
                 
                 if (!isVisible) return null;
                 
                 return (
                   <motion.div
                     key={cardId}
-                    className={`highlight-card-3d vertical-card ${isPulled ? 'pulled' : ''} ${isFlipped ? 'flipped' : ''}`}
+                    className={`highlight-card-3d vertical-card ${isPulled ? 'pulled' : ''}`}
                     initial={{ opacity: 0, x: 100, rotateY: 15 }}
                     animate={{ 
                       opacity: 1, 
@@ -715,23 +871,18 @@ const FastHighlights = () => {
                           transition={{ delay: 0.2 }}
                         >
                           <h4 className="over-title-3d">Over {highlight.over_number}</h4>
-                          <div className="card-actions">
-                            <motion.button
-                              className="flip-btn"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleCardFlip(cardId);
-                              }}
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                            >
-                              🔄
-                            </motion.button>
-                          </div>
                         </motion.div>
 
                         <div className="video-preview-3d">
-                          <div className="preview-placeholder vertical">
+                          <video 
+                            className="preview-video"
+                            src={highlight.video_v_path}
+                            preload="metadata"
+                            muted
+                            playsInline
+                            poster=""
+                          />
+                          <div className="video-preview-overlay vertical">
                             <span className="preview-icon">📱</span>
                             <p>Vertical Video</p>
                           </div>
@@ -742,55 +893,17 @@ const FastHighlights = () => {
                             className="video-btn-3d normal"
                             onClick={(e) => {
                               e.stopPropagation();
-                              openVideoModal(highlight.video_v_path);
+                              openVideoModal(highlight.video_v_path, highlight.video_v_ai_path, true);
                             }}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                           >
-                            ▶ Normal
-                          </motion.button>
-                          <motion.button
-                            className="video-btn-3d ai"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openVideoModal(highlight.video_v_ai_path);
-                            }}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            🤖 AI Enhanced
+                            ▶ Play Video
                           </motion.button>
                         </div>
                       </div>
 
-                      {/* Back of card */}
-                      <div className="card-face card-back">
-                        <div className="card-back-content">
-                          <h4>Compare Versions</h4>
-                          <motion.button
-                            className="comparison-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openComparisonModal(highlight.video_v_path, highlight.video_v_ai_path);
-                            }}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            🔀 Split Screen Compare
-                          </motion.button>
-                          <motion.button
-                            className="flip-btn back-flip"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCardFlip(cardId);
-                            }}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                          >
-                            ↩ Back
-                          </motion.button>
-                        </div>
-                      </div>
+
                     </div>
                   </motion.div>
                 );
@@ -807,7 +920,7 @@ const FastHighlights = () => {
           </h3>
           <div className="audio-cards">
             <AnimatePresence>
-              {items.map((highlight, index) => {
+              {currentItems.map((highlight, index) => {
                 const isVisible = visibleCards.includes(index);
                 
                 if (!isVisible) return null;
@@ -858,7 +971,7 @@ const FastHighlights = () => {
             onClick={() => setModalUrl(null)}
           >
             <motion.div 
-              className={`modal-content ${comparisonMode ? 'comparison-mode' : ''}`}
+              className="modal-content"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
@@ -876,24 +989,8 @@ const FastHighlights = () => {
 
               {/* Enhanced Controls Header */}
               <div className="enhanced-controls-header">
-                {comparisonMode && modalUrl?.normal && modalUrl?.ai && (
+                {modalUrl?.normal && modalUrl?.ai && (
                   <>
-                    <motion.button
-                      className="comparison-toggle active"
-                      onClick={toggleComparisonMode}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      🔀 Split Screen
-                    </motion.button>
-                    <motion.button
-                      className="overlay-toggle"
-                      onClick={() => setShowOverlay(!showOverlay)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      {showOverlay ? '👁️ Hide Overlay' : '👁️ Show Overlay'}
-                    </motion.button>
                     <motion.button
                       className="version-toggle"
                       onClick={toggleVideoType}
@@ -902,21 +999,25 @@ const FastHighlights = () => {
                     >
                       {currentVideoType === 'normal' ? '🤖 Switch to AI' : '📺 Switch to Normal'}
                     </motion.button>
+                    {currentVideoType === 'ai' && (
+                      <motion.button
+                        className="overlay-toggle"
+                        onClick={() => setShowOverlay(!showOverlay)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {showOverlay ? '👁️ Hide Enhancements' : '👁️ Show Enhancements'}
+                      </motion.button>
+                    )}
                   </>
-                )}
-                {!comparisonMode && modalUrl?.normal && modalUrl?.ai && (
-                  <motion.button
-                    className="comparison-toggle"
-                    onClick={toggleComparisonMode}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    🔀 Enable Split Screen
-                  </motion.button>
                 )}
               </div>
               
-              <div className="video-player-wrapper enhanced-wrapper">
+              <div 
+                className="video-player-wrapper enhanced-wrapper"
+                onMouseEnter={handleVideoMouseEnter}
+                onMouseLeave={handleVideoMouseLeave}
+              >
                 {/* Video Loading State */}
                 <AnimatePresence>
                   {videoLoading && (
@@ -945,116 +1046,16 @@ const FastHighlights = () => {
                   )}
                 </AnimatePresence>
 
-                {comparisonMode && modalUrl?.normal && modalUrl?.ai ? (
-                  /* Split Screen Mode */
-                  <div className="split-screen-container">
-                    {/* Normal Video */}
-                    <motion.div 
-                      className="video-half normal-video"
-                      style={{ 
-                        clipPath: `inset(0 ${100 - splitPosition}% 0 0)`,
-                      }}
-                      initial={{ opacity: 0, x: -50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <div className="video-label">Normal</div>
-                      <ReactPlayer 
-                        url={modalUrl.normal} 
-                        controls={false}
-                        width="100%" 
-                        height="70vh"
-                        playing={isPlaying}
-                        volume={isMuted ? 0 : volume}
-                        onProgress={handleProgress}
-                        onDuration={handleDuration}
-                        onReady={() => {
-                          setVideoLoading(false);
-                          setVideoReady(true);
-                        }}
-                        style={{
-                          background: '#000',
-                          borderRadius: '16px 0 0 16px',
-                          opacity: videoReady ? 1 : 0,
-                          transition: 'opacity 0.3s ease'
-                        }}
-                      />
-                    </motion.div>
-
-                    {/* AI Enhanced Video */}
-                    <motion.div 
-                      className="video-half ai-video"
-                      style={{ 
-                        clipPath: `inset(0 0 0 ${splitPosition}%)`,
-                      }}
-                      initial={{ opacity: 0, x: 50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <div className="video-label ai">AI Enhanced</div>
-                      <ReactPlayer 
-                        url={modalUrl.ai} 
-                        controls={false}
-                        width="100%" 
-                        height="70vh"
-                        playing={isPlaying}
-                        volume={isMuted ? 0 : volume}
-                        onProgress={handleProgress}
-                        onDuration={handleDuration}
-                        style={{
-                          background: '#000',
-                          borderRadius: '0 16px 16px 0',
-                          opacity: videoReady ? 1 : 0,
-                          transition: 'opacity 0.3s ease'
-                        }}
-                      />
-                    </motion.div>
-
-                    {/* Split Slider */}
-                    <motion.div 
-                      className="split-slider"
-                      style={{ left: `${splitPosition}%` }}
-                      onMouseDown={(e) => {
-                        const handleMouseMove = (e) => handleSplitDrag(e);
-                        const handleMouseUp = () => {
-                          document.removeEventListener('mousemove', handleMouseMove);
-                          document.removeEventListener('mouseup', handleMouseUp);
-                        };
-                        document.addEventListener('mousemove', handleMouseMove);
-                        document.addEventListener('mouseup', handleMouseUp);
-                      }}
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <div className="slider-handle">
-                        <span>⟷</span>
-                      </div>
-                    </motion.div>
-
-                    {/* Comparison Overlay */}
-                    <AnimatePresence>
-                      {showOverlay && (
-                        <motion.div 
-                          className="comparison-overlay"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                        >
-                          <div className="overlay-content">
-                            <h3>AI Enhancements</h3>
-                            <ul>
-                              <li>🎯 Enhanced clarity and sharpness</li>
-                              <li>🌈 Improved color grading</li>
-                              <li>⚡ Motion smoothing</li>
-                              <li>🔍 Detail enhancement</li>
-                            </ul>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                {/* Single Video Mode */}
+                <motion.div 
+                  className="single-video-container"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <div className="video-label">
+                    {currentVideoType === 'normal' ? 'Normal Video' : 'AI Enhanced Video'}
                   </div>
-                ) : (
-                  /* Single Video Mode */
                   <ReactPlayer 
                     ref={playerRef}
                     url={typeof modalUrl === 'string' ? modalUrl : modalUrl?.[currentVideoType] || modalUrl?.normal} 
@@ -1076,7 +1077,31 @@ const FastHighlights = () => {
                       transition: 'opacity 0.3s ease'
                     }}
                   />
-                )}
+                  
+                  {/* AI Enhancement Overlay */}
+                  <AnimatePresence>
+                    {showOverlay && currentVideoType === 'ai' && (
+                      <motion.div 
+                        className={`comparison-overlay ${isVerticalVideo ? 'vertical-video-overlay' : ''}`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                      >
+                        <div className="overlay-content">
+                          <h3>AI Enhancements</h3>
+                          <ul>
+                            <li>🎯 Enhanced clarity and sharpness</li>
+                            <li>🌈 Improved color grading</li>
+                            <li>⚡ Motion smoothing</li>
+                            <li>🔍 Detail enhancement</li>
+                            <li>🎬 Stabilization improvements</li>
+                            <li>✨ Noise reduction</li>
+                          </ul>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
                 
                 {/* Custom Controls Overlay */}
                 <AnimatePresence>
