@@ -7,6 +7,7 @@ import Home from './pages/Home.jsx';
 import AiCommentary from './pages/AiCommentary.jsx';
 import ScoringDashboard from './pages/ScoringDashboard.jsx';
 import ScoringInterface from './pages/ScoringInterface.jsx';
+import FastHighlights from './pages/FastHighlights.jsx';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -16,13 +17,15 @@ function App() {
       <nav>
         <Link to="/">Home</Link> |{' '}
         <Link to="/aicommentary">AI Commentary</Link> |{' '}
-        <Link to="/scoring">Scoring Dashboard</Link>
+        <Link to="/scoring">Scoring Dashboard</Link> |{' '}
+        <Link to="/highlights">Fast Highlights</Link>
       </nav>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/aicommentary" element={<AiCommentary />} />
         <Route path="/scoring" element={<ScoringDashboard />} />
         <Route path="/scoring/:id" element={<ScoringInterface />} />
+        <Route path="/highlights" element={<FastHighlights />} />
       </Routes>
     </div>
   );
