@@ -765,9 +765,24 @@
   left: 1rem;
   right: 4rem;
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   z-index: 20;
+  align-items: flex-start;
+  flex-wrap: nowrap; /* Prevent wrapping */
+}
+
+/* Allow wrapping for vertical videos */
+.enhanced-controls-header.vertical-video {
   flex-wrap: wrap;
+  max-width: calc(100% - 5rem);
+  gap: 0.5rem; /* Tighter gap for wrapped buttons */
+}
+
+/* Adjust button sizing for vertical videos */
+.enhanced-controls-header.vertical-video .version-toggle,
+.enhanced-controls-header.vertical-video .overlay-toggle {
+  min-width: 110px; /* Slightly smaller for better wrapping */
+  font-size: 0.8rem;
 }
 
 .comparison-toggle,
@@ -776,14 +791,18 @@
   background: rgba(0,0,0,0.8);
   border: 1px solid rgba(255,255,255,0.2);
   color: var(--clr-text);
-  padding: 0.5rem 1rem;
+  padding: 0.6rem 1.2rem;
   border-radius: 8px;
   font-family: 'Clash Display', sans-serif;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   cursor: pointer;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  white-space: nowrap; /* Prevent text wrapping */
+  min-width: 140px; /* Consistent button width */
+  text-align: center;
+  flex-shrink: 0; /* Prevent buttons from shrinking */
 }
 
 .comparison-toggle.active {
@@ -831,21 +850,7 @@
   right: 0;
 }
 
-.video-label {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  background: rgba(0,0,0,0.8);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-family: 'Clash Display', sans-serif;
-  font-weight: 600;
-  font-size: 0.9rem;
-  z-index: 10;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-}
+
 
 .single-video-container .video-label {
   background: var(--clr-primary);
@@ -1012,6 +1017,80 @@
   font-weight: 500;
   margin: 0;
   text-align: center;
+}
+
+/* Video Switch Loading Overlay */
+.video-switch-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #1a0a2a, #2d1b3d, #0d0113);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 15; /* Higher than video content but lower than controls */
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.switch-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+  max-width: 400px;
+  padding: 2rem;
+}
+
+.switch-loading-icon {
+  font-size: 4rem;
+  filter: drop-shadow(0 4px 12px rgba(156, 39, 176, 0.4));
+  will-change: transform;
+}
+
+.switch-loading-content h3 {
+  color: var(--clr-primary);
+  font-family: 'Clash Display', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+  background: linear-gradient(135deg, #9C27B0, #BA68C8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.switch-loading-content p {
+  color: var(--clr-text-light);
+  font-family: 'Clash Display', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 400;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.switch-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.switch-progress-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #9C27B0, #BA68C8, #E1BEE7);
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(156, 39, 176, 0.5);
 }
 
 /* Custom Video Controls */
@@ -1344,141 +1423,203 @@
 .audio-controls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
+  justify-content: center;
+  gap: 2rem;
+  padding: 1.5rem 2rem;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .audio-play-btn {
   background: linear-gradient(135deg, #9C27B0, #BA68C8);
   border: none;
   border-radius: 50%;
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.4);
-  transition: all 0.2s ease;
+  box-shadow: 
+    0 8px 24px rgba(156, 39, 176, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.audio-play-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .audio-play-btn:hover:not(:disabled) {
-  box-shadow: 0 6px 16px rgba(156, 39, 176, 0.6);
-  transform: translateY(-1px);
+  box-shadow: 
+    0 12px 32px rgba(156, 39, 176, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px) scale(1.05);
+}
+
+.audio-play-btn:hover:not(:disabled)::before {
+  opacity: 1;
+}
+
+.audio-play-btn:active:not(:disabled) {
+  transform: translateY(-1px) scale(1.02);
+  transition: all 0.1s ease;
 }
 
 .audio-play-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+  transform: none;
 }
 
 .audio-time-section {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   font-family: 'Clash Display', sans-serif;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--clr-text);
   flex-shrink: 0;
+  background: rgba(255,255,255,0.04);
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  font-variant-numeric: tabular-nums;
 }
 
 .audio-time-display {
-  font-size: 0.9rem;
-  min-width: 40px;
+  font-size: 0.95rem;
+  min-width: 42px;
   text-align: center;
+  letter-spacing: 0.5px;
 }
 
 .audio-time-display.current {
   color: var(--clr-primary);
+  font-weight: 700;
 }
 
 .audio-time-separator {
   color: var(--clr-text-light);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 400;
+  opacity: 0.6;
 }
 
 .audio-volume-section {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   flex-shrink: 0;
+  background: rgba(255,255,255,0.04);
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
 .audio-volume-btn {
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 8px;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--clr-text);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
 }
 
 .audio-volume-btn:hover {
   background: rgba(156, 39, 176, 0.2);
-  border-color: #9C27B0;
-  color: #9C27B0;
+  border-color: rgba(156, 39, 176, 0.4);
+  color: var(--clr-primary);
+  transform: scale(1.05);
 }
 
 .audio-volume-slider {
-  width: 100px;
+  width: 90px;
   height: 20px;
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 .volume-range {
   width: 100%;
-  height: 4px;
-  background: rgba(255,255,255,0.2);
-  border-radius: 2px;
+  height: 6px;
+  background: linear-gradient(
+    to right,
+    var(--clr-primary) 0%,
+    var(--clr-primary) 50%,
+    rgba(255,255,255,0.1) 50%,
+    rgba(255,255,255,0.1) 100%
+  );
+  border-radius: 3px;
   outline: none;
   cursor: pointer;
   -webkit-appearance: none;
   appearance: none;
+  transition: all 0.3s ease;
+}
+
+.volume-range:hover {
+  height: 8px;
 }
 
 .volume-range::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   background: linear-gradient(135deg, #9C27B0, #BA68C8);
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(156, 39, 176, 0.3);
-  transition: all 0.2s ease;
+  box-shadow: 
+    0 2px 8px rgba(156, 39, 176, 0.4),
+    0 0 0 2px rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .volume-range::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.5);
+  transform: scale(1.25);
+  box-shadow: 
+    0 4px 16px rgba(156, 39, 176, 0.6),
+    0 0 0 3px rgba(255, 255, 255, 0.2);
 }
 
 .volume-range::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   background: linear-gradient(135deg, #9C27B0, #BA68C8);
   border-radius: 50%;
   cursor: pointer;
-  border: none;
-  box-shadow: 0 2px 6px rgba(156, 39, 176, 0.3);
-  transition: all 0.2s ease;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(156, 39, 176, 0.4);
+  transition: all 0.3s ease;
 }
 
 .volume-range::-moz-range-thumb:hover {
-  transform: scale(1.2);
-  box-shadow: 0 4px 12px rgba(156, 39, 176, 0.5);
+  transform: scale(1.25);
+  box-shadow: 0 4px 16px rgba(156, 39, 176, 0.6);
 }
 
 .volume-range::-webkit-slider-track {
@@ -1678,6 +1819,15 @@
     right: 0;
     margin-bottom: 1rem;
     justify-content: center;
+    flex-wrap: wrap; /* Allow wrapping on mobile */
+    gap: 0.5rem;
+  }
+
+  .version-toggle,
+  .overlay-toggle {
+    min-width: 120px; /* Smaller min-width on mobile */
+    font-size: 0.8rem;
+    padding: 0.5rem 1rem;
   }
   
   .modal-content.comparison-mode {
@@ -1709,6 +1859,25 @@
     max-height: none;
     overflow-y: visible;
   }
+
+  /* Mobile Video Switch Loading */
+  .switch-loading-content {
+    max-width: 320px;
+    padding: 1.5rem;
+    gap: 1rem;
+  }
+
+  .switch-loading-icon {
+    font-size: 3rem;
+  }
+
+  .switch-loading-content h3 {
+    font-size: 1.1rem;
+  }
+
+  .switch-loading-content p {
+    font-size: 0.85rem;
+  }
 }
 
   .audio-modal .modal-content {
@@ -1723,16 +1892,19 @@
 
   .audio-controls {
     flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
+    gap: 1.5rem;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
   }
 
   .audio-time-section {
     justify-content: center;
+    padding: 0.5rem 0.8rem;
   }
 
   .audio-volume-section {
     justify-content: center;
+    padding: 0.5rem 0.8rem;
   }
 
   .audio-volume-slider {

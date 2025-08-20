@@ -17,99 +17,8 @@ const FastHighlights = () => {
   const status = useSelector(selectHighlightsStatus);
   const error = useSelector(selectHighlightsError);
   
-  // Mock data for multiple overs
-  const mockOversData = [
-    {
-      overNumber: 1,
-      highlights: [
-        {
-          index: 1,
-          over_number: 1.1,
-          video_h_path: '/mock-videos/over1-ball1-horizontal.mp4',
-          video_h_ai_path: '/mock-videos/over1-ball1-horizontal-ai.mp4',
-          video_v_path: '/mock-videos/over1-ball1-vertical.mp4',
-          video_v_ai_path: '/mock-videos/over1-ball1-vertical-ai.mp4',
-          ai_audio_path: '/mock-audio/over1-ball1-commentary.mp3'
-        },
-        {
-          index: 2,
-          over_number: 1.2,
-          video_h_path: '/mock-videos/over1-ball2-horizontal.mp4',
-          video_h_ai_path: '/mock-videos/over1-ball2-horizontal-ai.mp4',
-          video_v_path: '/mock-videos/over1-ball2-vertical.mp4',
-          video_v_ai_path: '/mock-videos/over1-ball2-vertical-ai.mp4',
-          ai_audio_path: '/mock-audio/over1-ball2-commentary.mp3'
-        },
-        {
-          index: 3,
-          over_number: 1.3,
-          video_h_path: '/mock-videos/over1-ball3-horizontal.mp4',
-          video_h_ai_path: '/mock-videos/over1-ball3-horizontal-ai.mp4',
-          video_v_path: '/mock-videos/over1-ball3-vertical.mp4',
-          video_v_ai_path: '/mock-videos/over1-ball3-vertical-ai.mp4',
-          ai_audio_path: '/mock-audio/over1-ball3-commentary.mp3'
-        }
-      ]
-    },
-    {
-      overNumber: 2,
-      highlights: [
-        {
-          index: 4,
-          over_number: 2.1,
-          video_h_path: '/mock-videos/over2-ball1-horizontal.mp4',
-          video_h_ai_path: '/mock-videos/over2-ball1-horizontal-ai.mp4',
-          video_v_path: '/mock-videos/over2-ball1-vertical.mp4',
-          video_v_ai_path: '/mock-videos/over2-ball1-vertical-ai.mp4',
-          ai_audio_path: '/mock-audio/over2-ball1-commentary.mp3'
-        },
-        {
-          index: 5,
-          over_number: 2.2,
-          video_h_path: '/mock-videos/over2-ball2-horizontal.mp4',
-          video_h_ai_path: '/mock-videos/over2-ball2-horizontal-ai.mp4',
-          video_v_path: '/mock-videos/over2-ball2-vertical.mp4',
-          video_v_ai_path: '/mock-videos/over2-ball2-vertical-ai.mp4',
-          ai_audio_path: '/mock-audio/over2-ball2-commentary.mp3'
-        },
-        {
-          index: 6,
-          over_number: 2.3,
-          video_h_path: '/mock-videos/over2-ball3-horizontal.mp4',
-          video_h_ai_path: '/mock-videos/over2-ball3-horizontal-ai.mp4',
-          video_v_path: '/mock-videos/over2-ball3-vertical.mp4',
-          video_v_ai_path: '/mock-videos/over2-ball3-vertical-ai.mp4',
-          ai_audio_path: '/mock-audio/over2-ball3-commentary.mp3'
-        }
-      ]
-    },
-    {
-      overNumber: 3,
-      highlights: [
-        {
-          index: 7,
-          over_number: 3.1,
-          video_h_path: '/mock-videos/over3-ball1-horizontal.mp4',
-          video_h_ai_path: '/mock-videos/over3-ball1-horizontal-ai.mp4',
-          video_v_path: '/mock-videos/over3-ball1-vertical.mp4',
-          video_v_ai_path: '/mock-videos/over3-ball1-vertical-ai.mp4',
-          ai_audio_path: '/mock-audio/over3-ball1-commentary.mp3'
-        },
-        {
-          index: 8,
-          over_number: 3.2,
-          video_h_path: '/mock-videos/over3-ball2-horizontal.mp4',
-          video_h_ai_path: '/mock-videos/over3-ball2-horizontal-ai.mp4',
-          video_v_path: '/mock-videos/over3-ball2-vertical.mp4',
-          video_v_ai_path: '/mock-videos/over3-ball2-vertical-ai.mp4',
-          ai_audio_path: '/mock-audio/over3-ball2-commentary.mp3'
-        }
-      ]
-    }
-  ];
 
-  // Carousel state for overs
-  const [currentOverIndex, setCurrentOverIndex] = useState(0);
+
   const [visibleCards, setVisibleCards] = useState([]);
   const [modalUrl, setModalUrl] = useState(null);
   const [audioUrl, setAudioUrl] = useState(null);
@@ -122,6 +31,12 @@ const FastHighlights = () => {
   const [seeking, setSeeking] = useState(false);
   const [videoLoading, setVideoLoading] = useState(true);
   const [videoReady, setVideoReady] = useState(false);
+  const [videoSwitchLoading, setVideoSwitchLoading] = useState(false);
+
+  // Debug video switch loading state
+  useEffect(() => {
+    console.log('🎯 videoSwitchLoading state changed:', videoSwitchLoading);
+  }, [videoSwitchLoading]);
   
   // Audio player states
   const [audioPlaying, setAudioPlaying] = useState(false);
@@ -142,62 +57,16 @@ const FastHighlights = () => {
   const [currentVideoType, setCurrentVideoType] = useState('normal'); // 'normal' or 'ai'
   const [isVerticalVideo, setIsVerticalVideo] = useState(false);
 
-  // Touch/swipe states
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
+
   
   const playerRef = useRef(null);
   const waveformRef = useRef(null);
   const wavesurfer = useRef(null);
   const audioElementRef = useRef(null);
+  const switchStartTimeRef = useRef(null);
 
-  // Get current data (mock data or real data)
-  const currentOverData = mockOversData[currentOverIndex];
-  const currentItems = status === 'succeeded' && items.length > 0 ? items : currentOverData?.highlights || [];
-
-  // Carousel navigation functions
-  const goToNextOver = () => {
-    setCurrentOverIndex((prev) => (prev + 1) % mockOversData.length);
-    setVisibleCards([]);
-    setPulledCard(null);
-  };
-
-  const goToPrevOver = () => {
-    setCurrentOverIndex((prev) => (prev - 1 + mockOversData.length) % mockOversData.length);
-    setVisibleCards([]);
-    setPulledCard(null);
-  };
-
-  const goToOver = (index) => {
-    setCurrentOverIndex(index);
-    setVisibleCards([]);
-    setPulledCard(null);
-  };
-
-  // Touch/swipe handlers
-  const handleTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe && mockOversData.length > 1) {
-      goToNextOver();
-    }
-    if (isRightSwipe && mockOversData.length > 1) {
-      goToPrevOver();
-    }
-  };
+  // Use API data directly
+  const currentItems = status === 'succeeded' && items.length > 0 ? items : [];
 
   useEffect(() => {
     if (status === 'idle') {
@@ -205,7 +74,7 @@ const FastHighlights = () => {
     }
   }, [status, dispatch]);
 
-  // Staggered card reveal - updated to work with current over
+  // Staggered card reveal
   useEffect(() => {
     if (currentItems.length > 0) {
       setVisibleCards([]);
@@ -215,25 +84,9 @@ const FastHighlights = () => {
         }, index * 100);
       });
     }
-  }, [currentItems.length, currentOverIndex]);
+  }, [currentItems.length]);
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (mockOversData.length <= 1) return;
-      
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        goToPrevOver();
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        goToNextOver();
-      }
-    };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mockOversData.length]);
 
   // Video control handlers
   const handlePlayPause = () => {
@@ -286,7 +139,7 @@ const FastHighlights = () => {
     setShowControls(false);
   };
 
-  // Reset video states when modal opens
+  // Reset video states when modal opens/closes
   useEffect(() => {
     if (modalUrl) {
       setVideoLoading(true);
@@ -295,6 +148,12 @@ const FastHighlights = () => {
       setPlayed(0);
       setDuration(0);
       setShowControls(true); // Show controls when video loads
+      setVideoSwitchLoading(false); // Reset switch loading when opening modal
+      switchStartTimeRef.current = null; // Reset timer
+    } else {
+      // Reset switch loading when modal closes
+      setVideoSwitchLoading(false);
+      switchStartTimeRef.current = null; // Reset timer
     }
   }, [modalUrl]);
 
@@ -322,14 +181,25 @@ const FastHighlights = () => {
 
   // Enhanced video player functions
   const toggleVideoType = () => {
-    setCurrentVideoType(prev => {
-      const newType = prev === 'normal' ? 'ai' : 'normal';
-      // Hide overlay when switching to normal video
-      if (newType === 'normal') {
-        setShowOverlay(false);
-      }
-      return newType;
-    });
+    console.log('🔄 Video switch started - Setting loading state');
+    switchStartTimeRef.current = Date.now();
+    setVideoSwitchLoading(true);
+    setVideoReady(false);
+    setIsPlaying(false); // Pause current video during switch
+    
+    // Small delay to ensure loading state renders before video type change
+    setTimeout(() => {
+      console.log('🎬 Changing video type');
+      setCurrentVideoType(prev => {
+        const newType = prev === 'normal' ? 'ai' : 'normal';
+        console.log(`📺 Switching from ${prev} to ${newType}`);
+        // Hide overlay when switching to normal video
+        if (newType === 'normal') {
+          setShowOverlay(false);
+        }
+        return newType;
+      });
+    }, 100); // Small delay to ensure loading state shows
   };
 
   // Initialize WaveSurfer when audio modal opens
@@ -664,12 +534,7 @@ const FastHighlights = () => {
   }
 
   return (
-    <div 
-      className="highlights-container"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className="highlights-container">
       <motion.div
         className="highlights-header"
         initial={{ opacity: 0, y: -20 }}
@@ -679,44 +544,6 @@ const FastHighlights = () => {
         <h2 className="highlights-title">
           Fast Highlight Packages
         </h2>
-        
-        <div className="over-navigation">
-          <motion.button
-            className="nav-arrow left"
-            onClick={goToPrevOver}
-            whileHover={{ scale: 1.1, x: -2 }}
-            whileTap={{ scale: 0.9 }}
-            disabled={mockOversData.length <= 1}
-            title="Previous Over (←)"
-          >
-            ←
-          </motion.button>
-          
-          <div className="over-display">
-            <span className="over-label">Over</span>
-            <span className="over-number">{currentOverData?.overNumber}</span>
-            <div className="over-indicators">
-              {mockOversData.map((_, index) => (
-                <div 
-                  key={index}
-                  className={`over-dot ${index === currentOverIndex ? 'active' : ''}`}
-                />
-              ))}
-            </div>
-            <p className="swipe-hint">Swipe or use arrow keys</p>
-          </div>
-          
-          <motion.button
-            className="nav-arrow right"
-            onClick={goToNextOver}
-            whileHover={{ scale: 1.1, x: 2 }}
-            whileTap={{ scale: 0.9 }}
-            disabled={mockOversData.length <= 1}
-            title="Next Over (→)"
-          >
-            →
-          </motion.button>
-        </div>
       </motion.div>
       
       <div className="highlights-3d-container">
@@ -960,6 +787,8 @@ const FastHighlights = () => {
         </div>
       </div>
 
+
+
       {/* Enhanced Video Modal */}
       <AnimatePresence>
         {modalUrl && (
@@ -988,7 +817,7 @@ const FastHighlights = () => {
               </motion.button>
 
               {/* Enhanced Controls Header */}
-              <div className="enhanced-controls-header">
+              <div className={`enhanced-controls-header ${isVerticalVideo ? 'vertical-video' : ''}`}>
                 {modalUrl?.normal && modalUrl?.ai && (
                   <>
                     <motion.button
@@ -997,16 +826,16 @@ const FastHighlights = () => {
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
-                      {currentVideoType === 'normal' ? '🤖 Switch to AI' : '📺 Switch to Normal'}
+                      {currentVideoType === 'normal' ? '🤖 AI Enhanced' : '📺 Normal Video'}
                     </motion.button>
-                    {currentVideoType === 'ai' && (
+                    {currentVideoType === 'ai' && !videoSwitchLoading && (
                       <motion.button
                         className="overlay-toggle"
                         onClick={() => setShowOverlay(!showOverlay)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                        {showOverlay ? '👁️ Hide Enhancements' : '👁️ Show Enhancements'}
+                        {showOverlay ? '👁️ Hide Details' : '👁️ Show Details'}
                       </motion.button>
                     )}
                   </>
@@ -1046,6 +875,57 @@ const FastHighlights = () => {
                   )}
                 </AnimatePresence>
 
+                {/* Video Switch Loading State */}
+                <AnimatePresence>
+                  {videoSwitchLoading && (
+                    <motion.div 
+                      className="video-switch-loading-overlay"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="switch-loading-content">
+                        <motion.div
+                          className="switch-loading-icon"
+                          animate={{ 
+                            rotate: 360,
+                            scale: [1, 1.1, 1]
+                          }}
+                          transition={{ 
+                            rotate: { duration: 1, repeat: Infinity, ease: "linear" },
+                            scale: { duration: 0.8, repeat: Infinity, ease: "easeInOut" }
+                          }}
+                        >
+                          {currentVideoType === 'ai' ? '🤖' : '📺'}
+                        </motion.div>
+                        <motion.h3
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.1 }}
+                        >
+                          Switching to {currentVideoType === 'ai' ? 'AI Enhanced' : 'Normal'} Video
+                        </motion.h3>
+                        <motion.p
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          {currentVideoType === 'ai' 
+                            ? 'Loading enhanced version with improved quality and effects...' 
+                            : 'Loading original video without enhancements...'}
+                        </motion.p>
+                        <motion.div
+                          className="switch-progress-bar"
+                          initial={{ width: 0 }}
+                          animate={{ width: "100%" }}
+                          transition={{ duration: 1.2, ease: "easeOut" }}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 {/* Single Video Mode */}
                 <motion.div 
                   className="single-video-container"
@@ -1053,9 +933,7 @@ const FastHighlights = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5 }}
                 >
-                  <div className="video-label">
-                    {currentVideoType === 'normal' ? 'Normal Video' : 'AI Enhanced Video'}
-                  </div>
+
                   <ReactPlayer 
                     ref={playerRef}
                     url={typeof modalUrl === 'string' ? modalUrl : modalUrl?.[currentVideoType] || modalUrl?.normal} 
@@ -1067,8 +945,31 @@ const FastHighlights = () => {
                     onProgress={handleProgress}
                     onDuration={handleDuration}
                     onReady={() => {
+                      console.log('✅ Video ready - Clearing loading states');
                       setVideoLoading(false);
                       setVideoReady(true);
+                      
+                      // Ensure minimum loading display time for better UX
+                      if (switchStartTimeRef.current) {
+                        const elapsedTime = Date.now() - switchStartTimeRef.current;
+                        const minDisplayTime = 1200; // 1.2 seconds minimum
+                        
+                        if (elapsedTime < minDisplayTime) {
+                          const remainingTime = minDisplayTime - elapsedTime;
+                          console.log(`⏱️ Keeping loading for ${remainingTime}ms more`);
+                          setTimeout(() => {
+                            console.log('🎉 Minimum display time reached - Hiding loading');
+                            setVideoSwitchLoading(false);
+                            switchStartTimeRef.current = null;
+                          }, remainingTime);
+                        } else {
+                          console.log('🎉 Enough time elapsed - Hiding loading immediately');
+                          setVideoSwitchLoading(false);
+                          switchStartTimeRef.current = null;
+                        }
+                      } else {
+                        setVideoSwitchLoading(false);
+                      }
                     }}
                     style={{
                       background: '#000',
@@ -1324,11 +1225,11 @@ const FastHighlights = () => {
                     whileTap={{ scale: audioLoading ? 1 : 0.95 }}
                   >
                     {audioPlaying ? (
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
                       </svg>
                     ) : (
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style={{marginLeft: '2px'}}>
                         <path d="M8 5v14l11-7z"/>
                       </svg>
                     )}
