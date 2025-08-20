@@ -7,15 +7,27 @@ import {
   selectHighlightsStatus,
   selectHighlightsError,
 } from '../features/highlights/highlightsSlice.js';
+import {
+  fetchScoring,
+  selectScoringItems,
+  selectScoringStatus,
+} from '../features/scoring/scoringSlice.js';
 import ReactPlayer from 'react-player';
 import WaveSurfer from 'wavesurfer.js';
 import './FastHighlights.css';
+import Lottie from 'lottie-react';
+import wandAnimation from '../assets/wand.json';
+import magicLogoSvg from '../assets/magiclogo.svg';
 
 const FastHighlights = () => {
   const dispatch = useDispatch();
   const items = useSelector(selectHighlightsItems);
   const status = useSelector(selectHighlightsStatus);
   const error = useSelector(selectHighlightsError);
+  
+  // Scoring data for AI Magic
+  const scoringItems = useSelector(selectScoringItems);
+  const scoringStatus = useSelector(selectScoringStatus);
   
 
 
@@ -56,6 +68,11 @@ const FastHighlights = () => {
   const [showOverlay, setShowOverlay] = useState(false);
   const [currentVideoType, setCurrentVideoType] = useState('normal'); // 'normal' or 'ai'
   const [isVerticalVideo, setIsVerticalVideo] = useState(false);
+  
+  // AI Magic states
+  const [magicWandAnimation, setMagicWandAnimation] = useState({}); // {cardId: isAnimating}
+  const [thumbnailGeneration, setThumbnailGeneration] = useState({}); // {cardId: {loading, imageUrl}}
+  const [generatedThumbnails, setGeneratedThumbnails] = useState({}); // {cardId: imageUrl}
 
 
   
@@ -73,6 +90,28 @@ const FastHighlights = () => {
       dispatch(fetchHighlights());
     }
   }, [status, dispatch]);
+
+  // Fetch scoring data if needed for AI Magic
+  useEffect(() => {
+    if (scoringStatus === 'idle') {
+      console.log('🚀 Fetching scoring data...');
+      dispatch(fetchScoring());
+    }
+  }, [scoringStatus, dispatch]);
+
+  useEffect(() => {
+    console.log('📊 FastHighlights data status:');
+    console.log('   🎬 Highlights count:', items.length);
+    console.log('   🏏 Scoring count:', scoringItems.length);
+    console.log('   📈 Scoring status:', scoringStatus);
+    if (scoringItems.length > 0) {
+      console.log('   📋 Scoring data sample:', scoringItems.slice(0, 3).map(item => ({
+        index: item.index,
+        event: item.event,
+        has_scoring_data: !!item.scoring_data
+      })));
+    }
+  }, [items, scoringItems, scoringStatus]);
 
   // Staggered card reveal
   useEffect(() => {
@@ -177,6 +216,146 @@ const FastHighlights = () => {
 
   const handleCardSelect = (cardId) => {
     setSelectedCard(selectedCard === cardId ? null : cardId);
+  };
+
+  // AI Magic API call function
+  const generateThumbnail = async (highlight, aspectRatio) => {
+    const cardId = `${aspectRatio === '16:9' ? 'horizontal' : 'vertical'}-${highlight.index}`;
+    
+    try {
+      // Find corresponding scoring data for this highlight
+      // Handle potential index mismatch (highlights may be 0-indexed, scoring 1-indexed)
+      const scoringData = scoringItems.find(item => item.index === highlight.index) || 
+                         scoringItems.find(item => item.index === highlight.index + 1);
+      
+      console.log('🔍 Searching for scoring data for highlight index:', highlight.index);
+      console.log('📊 Available scoring items:', scoringItems.map(item => ({ index: item.index, event: item.event })));
+      console.log('🎯 Found scoring data:', scoringData ? 'YES' : 'NO');
+      if (scoringData) {
+        console.log('📈 Scoring data details:', {
+          index: scoringData.index,
+          event: scoringData.event,
+          scoring_data_length: scoringData.scoring_data?.length || 0
+        });
+      }
+      
+      let events = ["1", "Dot", "4", "1", "2", "Dot"]; // fallback
+      let last_ball_scorecard = "MI 98-3"; // fallback
+      
+      if (scoringData && scoringData.scoring_data && scoringData.scoring_data.length > 0) {
+        // Extract events from scoring data
+        events = scoringData.scoring_data.map(ball => {
+          const event = ball.Commentary?.Event || "Dot";
+          const runsScored = ball.BattingParameters?.RunsScored?.hit_to_fence_value || "0";
+          
+          console.log('🏏 Processing ball event:', { event, runsScored });
+          
+          // Map events to expected format
+          switch (event.toLowerCase()) {
+            case 'four':
+            case 'boundary':
+              return "4";
+            case 'six':
+            case 'maximum':
+              return "6";
+            case 'single':
+              return "1";
+            case 'two runs':
+            case 'double':
+              return "2";
+            case 'three runs':
+            case 'triple':
+              return "3";
+            case 'dot ball':
+            case 'dot':
+              return "Dot";
+            default:
+              // For any other case, use the runs scored value
+              const runs = parseInt(runsScored) || 0;
+              return runs === 0 ? "Dot" : runs.toString();
+          }
+        });
+        
+        // Get the last ball's scorecard
+        const lastBall = scoringData.scoring_data[scoringData.scoring_data.length - 1];
+        last_ball_scorecard = lastBall?.Commentary?.DisplayScore || "MI 98-3";
+        
+        console.log('✅ Successfully extracted data from scoring API:');
+        console.log('   📋 Events:', events);
+        console.log('   🏏 Last ball scorecard:', last_ball_scorecard);
+      } else {
+        console.log('⚠️ Using fallback data - scoring data not found or empty');
+      }
+      
+      const payload = {
+        events: events,
+        over_number: highlight.over_number,
+        last_ball_scorecard: last_ball_scorecard,
+        aspect_ratio: aspectRatio
+      };
+
+      console.log('🎯 Final AI Magic Payload for highlight', highlight.index, ':', payload);
+
+      setThumbnailGeneration(prev => ({
+        ...prev,
+        [cardId]: { loading: true, imageUrl: null }
+      }));
+
+      const response = await fetch('/generate-thumbnail', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const imageUrl = URL.createObjectURL(blob);
+        
+        setGeneratedThumbnails(prev => ({
+          ...prev,
+          [cardId]: imageUrl
+        }));
+        
+        setThumbnailGeneration(prev => ({
+          ...prev,
+          [cardId]: { loading: false, imageUrl }
+        }));
+      } else {
+        throw new Error('Failed to generate thumbnail');
+      }
+    } catch (error) {
+      console.error('Error generating thumbnail:', error);
+      setThumbnailGeneration(prev => ({
+        ...prev,
+        [cardId]: { loading: false, imageUrl: null }
+      }));
+    }
+  };
+
+  // Handle AI Magic button click
+  const handleAiMagic = async (highlight, aspectRatio, e) => {
+    e.stopPropagation();
+    
+    const cardId = `${aspectRatio === '16:9' ? 'horizontal' : 'vertical'}-${highlight.index}`;
+    
+    // Start magic wand animation
+    setMagicWandAnimation(prev => ({
+      ...prev,
+      [cardId]: true
+    }));
+
+    // Start API call
+    generateThumbnail(highlight, aspectRatio);
+
+    // Stop magic wand animation after 3-5 seconds
+    setTimeout(() => {
+      setMagicWandAnimation(prev => ({
+        ...prev,
+        [cardId]: false
+      }));
+    }, 4000); // 4 seconds
   };
 
   // Enhanced video player functions
@@ -602,9 +781,19 @@ const FastHighlights = () => {
                           transition={{ delay: 0.2 }}
                         >
                           <h4 className="over-title-3d">Over {highlight.over_number}</h4>
+                          <motion.button
+                            className="ai-magic-btn"
+                            onClick={(e) => handleAiMagic(highlight, '16:9', e)}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            disabled={thumbnailGeneration[cardId]?.loading}
+                          >
+                            <img src={magicLogoSvg} alt="Magic Logo" className="magic-logo-icon" />
+                            AI Magic
+                          </motion.button>
                         </motion.div>
 
-                        <div className="video-preview-3d">
+                        <div className={`video-preview-3d ${magicWandAnimation[cardId] ? 'magic-active' : ''}`}>
                           <video 
                             className="preview-video"
                             src={highlight.video_h_path}
@@ -613,10 +802,57 @@ const FastHighlights = () => {
                             playsInline
                             poster=""
                           />
-                          <div className="video-preview-overlay">
-                            <span className="preview-icon">📺</span>
-                            <p>Horizontal Video</p>
-                          </div>
+                          
+                          {/* Magic Wand Animation */}
+                          <AnimatePresence>
+                            {magicWandAnimation[cardId] && (
+                              <motion.div
+                                className="magic-wand-overlay"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ 
+                                  opacity: 1, 
+                                  scale: 1,
+                                  x: [0, 30, -20, 15, -8, 0],
+                                  y: [0, -15, 20, -10, 5, 0]
+                                }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                transition={{ 
+                                  duration: 4,
+                                  x: { duration: 4, ease: "easeInOut" },
+                                  y: { duration: 4, ease: "easeInOut" }
+                                }}
+                              >
+                                <Lottie
+                                  animationData={wandAnimation}
+                                  loop={true}
+                                  autoplay={true}
+                                  style={{ width: '80px', height: '80px' }}
+                                />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+
+                          {/* Generated Thumbnail Overlay */}
+                          <AnimatePresence>
+                            {generatedThumbnails[cardId] && (
+                              <motion.div
+                                className="generated-thumbnail-overlay"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                transition={{ duration: 0.8, ease: "easeOut" }}
+                              >
+                                <img 
+                                  src={generatedThumbnails[cardId]} 
+                                  alt="Generated Thumbnail" 
+                                  className="generated-thumbnail"
+                                />
+                                <div className="thumbnail-badge">
+                                  AI Generated
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
 
                         <div className="card-controls-3d">
@@ -698,9 +934,19 @@ const FastHighlights = () => {
                           transition={{ delay: 0.2 }}
                         >
                           <h4 className="over-title-3d">Over {highlight.over_number}</h4>
+                          <motion.button
+                            className="ai-magic-btn"
+                            onClick={(e) => handleAiMagic(highlight, '9:16', e)}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            disabled={thumbnailGeneration[cardId]?.loading}
+                          >
+                            <img src={magicLogoSvg} alt="Magic Logo" className="magic-logo-icon" />
+                            AI Magic
+                          </motion.button>
                         </motion.div>
 
-                        <div className="video-preview-3d">
+                        <div className={`video-preview-3d ${magicWandAnimation[cardId] ? 'magic-active' : ''}`}>
                           <video 
                             className="preview-video"
                             src={highlight.video_v_path}
@@ -709,10 +955,57 @@ const FastHighlights = () => {
                             playsInline
                             poster=""
                           />
-                          <div className="video-preview-overlay vertical">
-                            <span className="preview-icon">📱</span>
-                            <p>Vertical Video</p>
-                          </div>
+                          
+                          {/* Magic Wand Animation */}
+                          <AnimatePresence>
+                            {magicWandAnimation[cardId] && (
+                              <motion.div
+                                className="magic-wand-overlay"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ 
+                                  opacity: 1, 
+                                  scale: 1,
+                                  x: [0, 30, -20, 15, -8, 0],
+                                  y: [0, -15, 25, -10, 8, 0]
+                                }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                transition={{ 
+                                  duration: 4,
+                                  x: { duration: 4, ease: "easeInOut" },
+                                  y: { duration: 4, ease: "easeInOut" }
+                                }}
+                              >
+                                <Lottie
+                                  animationData={wandAnimation}
+                                  loop={true}
+                                  autoplay={true}
+                                  style={{ width: '80px', height: '80px' }}
+                                />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+
+                          {/* Generated Thumbnail Overlay */}
+                          <AnimatePresence>
+                            {generatedThumbnails[cardId] && (
+                              <motion.div
+                                className="generated-thumbnail-overlay"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.8 }}
+                                transition={{ duration: 0.8, ease: "easeOut" }}
+                              >
+                                <img 
+                                  src={generatedThumbnails[cardId]} 
+                                  alt="Generated Thumbnail" 
+                                  className="generated-thumbnail"
+                                />
+                                <div className="thumbnail-badge">
+                                  AI Generated
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
 
                         <div className="card-controls-3d">

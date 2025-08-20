@@ -14,6 +14,10 @@ export default defineConfig({
         target: 'http://54.87.135.228:9008',
         changeOrigin: true,
       },
+      '/generate-thumbnail': {
+        target: 'http://3.6.106.30:9002',
+        changeOrigin: true,
+      },
     },
   },
 });
