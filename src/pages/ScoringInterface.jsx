@@ -30,12 +30,12 @@ const ScoringInterface = () => {
         await new Promise(resolve => setTimeout(resolve, 500));
         setAnimationStep(1); // Show pitch
         await new Promise(resolve => setTimeout(resolve, 800));
-        setAnimationStep(2); // Show bowling
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        setAnimationStep(2); // Show bowling (top row)
+        await new Promise(resolve => setTimeout(resolve, 600));
         setAnimationStep(3); // Highlight pitch zone
-        await new Promise(resolve => setTimeout(resolve, 1200));
-        setAnimationStep(4); // Show batting cards
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 800));
+        setAnimationStep(4); // Move bowling down & show batting cards
+        await new Promise(resolve => setTimeout(resolve, 1000));
         setAnimationStep(5); // Show other widgets
       };
       sequence();
@@ -69,8 +69,13 @@ const ScoringInterface = () => {
         Over {entry.displayover.toFixed(1)} – {sd.Commentary.DisplayScore}
       </motion.h1>
 
-      {/* Top Row: Pitch + Batting */}
-      <div className="top-section">
+      {/* Dynamic Layout - Pitch + Bowling initially, then rearranges */}
+      <motion.div 
+        className="dynamic-layout"
+        layout
+        transition={{ duration: 0.8, type: "spring" }}
+      >
+        {/* Pitch - always left */}
         <AnimatePresence>
           {animationStep >= 1 && (
             <motion.div 
@@ -78,6 +83,7 @@ const ScoringInterface = () => {
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ duration: 0.8, type: "spring", bounce: 0.3 }}
+              layoutId="pitch"
             > 
               <img src={pitchImg} className="pitch-img" />
               <div className="highlight good" />
@@ -89,19 +95,63 @@ const ScoringInterface = () => {
           )}
         </AnimatePresence>
 
+        {/* Bowling Widget - initially top right, then moves down */}
+        <AnimatePresence>
+          {animationStep >= 2 && (
+            <motion.div 
+              className={`bowling-container ${animationStep >= 4 ? 'moved-down' : 'top-right'}`}
+              initial={{ opacity: 0, scale: 0.8, x: 50 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1, 
+                x: 0,
+              }}
+              transition={{ duration: 0.6, type: "spring" }}
+              layout
+              layoutId="bowling"
+            >
+              <motion.div 
+                className="widget bowling-widget enhanced"
+                whileHover={{ scale: 1.02 }}
+              >
+                <h3>🥎 Bowling</h3>
+                <div className="bowler-info">
+                  <motion.div 
+                    className="bowler-name highlighted"
+                    animate={{ 
+                      color: ['var(--clr-text)', 'var(--clr-primary)', 'var(--clr-text)']
+                    }}
+                    transition={{ duration: 2, repeat: 2 }}
+                  >
+                    {blr.bowlername}
+                  </motion.div>
+                  <div className="bowling-stats">
+                    <span>{blr.O} overs • {blr.R} runs • {blr.W} wickets</span>
+                  </div>
+                  <div className="bowling-style">{bowl.BowlingStyle}</div>
+                  {bowl.BowlingFrom && <div className="bowling-from">From: {bowl.BowlingFrom}</div>}
+                  {bowl.DeliveryType && <div className="delivery-type">{bowl.DeliveryType}</div>}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Batting Section - appears in step 4, takes right position */}
         <AnimatePresence>
           {animationStep >= 4 && (
             <motion.div 
               className="batting-section"
-              initial={{ opacity: 0, x: 100 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              layoutId="batting"
             >
               <motion.div 
                 className="batting-banner"
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
-                transition={{ delay: 0.2, duration: 0.4 }}
+                transition={{ delay: 0.4, duration: 0.4 }}
               >
                 <h2>🏏 Batting</h2>
               </motion.div>
@@ -109,9 +159,9 @@ const ScoringInterface = () => {
               <div className="batsmen-cards">
                 <motion.div 
                   className="batsman-card striker"
-                  initial={{ opacity: 0, y: 50 }}
+                  initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4, duration: 0.5 }}
+                  transition={{ delay: 0.6, duration: 0.4 }}
                 >
                   <div className="batsman-header">
                     <span className="batsman-name">{on.batsname}</span>
@@ -129,7 +179,7 @@ const ScoringInterface = () => {
                         className="stat"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ delay: 0.6 + idx * 0.1, type: "spring" }}
+                        transition={{ delay: 0.8 + idx * 0.1, type: "spring" }}
                       >
                         <span className="stat-value">{stat.value}</span>
                         <span className="stat-label">{stat.label}</span>
@@ -141,9 +191,9 @@ const ScoringInterface = () => {
 
                 <motion.div 
                   className="batsman-card non-striker"
-                  initial={{ opacity: 0, y: 50 }}
+                  initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7, duration: 0.5 }}
+                  transition={{ delay: 0.8, duration: 0.4 }}
                 >
                   <div className="batsman-header">
                     <span className="batsman-name">{ns.nonstrikername}</span>
@@ -161,7 +211,7 @@ const ScoringInterface = () => {
                         className="stat"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ delay: 0.9 + idx * 0.1, type: "spring" }}
+                        transition={{ delay: 1.0 + idx * 0.1, type: "spring" }}
                       >
                         <span className="stat-value">{stat.value}</span>
                         <span className="stat-label">{stat.label}</span>
@@ -173,43 +223,7 @@ const ScoringInterface = () => {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-
-      {/* Bowling Widget (appears early) */}
-      <AnimatePresence>
-        {animationStep >= 2 && (
-          <motion.div 
-            className="early-bowling-widget"
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.6, type: "spring" }}
-          >
-            <motion.div 
-              className="widget bowling-widget enhanced"
-              whileHover={{ scale: 1.02 }}
-            >
-              <h3>🥎 Bowling</h3>
-              <div className="bowler-info">
-                <motion.div 
-                  className="bowler-name highlighted"
-                  animate={{ 
-                    color: ['var(--clr-text)', 'var(--clr-primary)', 'var(--clr-text)']
-                  }}
-                  transition={{ duration: 2, repeat: 2 }}
-                >
-                  {blr.bowlername}
-                </motion.div>
-                <div className="bowling-stats">
-                  <span>{blr.O} overs • {blr.R} runs • {blr.W} wickets</span>
-                </div>
-                <div className="bowling-style">{bowl.BowlingStyle}</div>
-                {bowl.BowlingFrom && <div className="bowling-from">From: {bowl.BowlingFrom}</div>}
-                {bowl.DeliveryType && <div className="delivery-type">{bowl.DeliveryType}</div>}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </motion.div>
 
       {/* Bottom Row: Details */}
       <AnimatePresence>

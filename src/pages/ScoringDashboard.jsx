@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   fetchScoring,
   selectScoringItems,
@@ -16,6 +17,17 @@ const ScoringDashboard = () => {
   const items = useSelector(selectScoringItems);
   const [modalUrl, setModalUrl] = useState(null);
   const [loadedVideos, setLoadedVideos] = useState(new Set());
+  const [visibleCards, setVisibleCards] = useState([]);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [played, setPlayed] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(0.8);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const [seeking, setSeeking] = useState(false);
+  const [videoLoading, setVideoLoading] = useState(true);
+  const [videoReady, setVideoReady] = useState(false);
+  const playerRef = useRef(null);
   const status = useSelector(selectScoringStatus);
   const error = useSelector(selectScoringError);
 
@@ -25,72 +37,424 @@ const ScoringDashboard = () => {
     }
   }, [status, dispatch]);
 
-  if (status === 'loading') return <p>Loading scoring data…</p>;
-  if (status === 'failed') return <p>Error: {error}</p>;
+  // Staggered card reveal
+  useEffect(() => {
+    if (status === 'succeeded' && items.length > 0) {
+      setVisibleCards([]);
+      items.forEach((_, index) => {
+        setTimeout(() => {
+          setVisibleCards(prev => [...prev, index]);
+        }, index * 120); // 120ms stagger for faster reveals
+      });
+    }
+  }, [status, items.length]);
+
+  // Video control handlers
+  const handlePlayPause = () => setIsPlaying(!isPlaying);
+  const handleProgress = (state) => {
+    if (!seeking) {
+      setPlayed(state.played);
+    }
+  };
+  const handleDuration = (duration) => {
+    setDuration(duration);
+    setVideoLoading(false);
+    setVideoReady(true);
+  };
+  const handleSeek = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pos = (e.clientX - rect.left) / rect.width;
+    setSeeking(true);
+    setPlayed(pos);
+    if (playerRef.current) {
+      playerRef.current.seekTo(pos, 'fraction');
+    }
+    // Reset seeking after a short delay to allow the player to update
+    setTimeout(() => setSeeking(false), 100);
+  };
+  const handleVolumeChange = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const vol = (e.clientX - rect.left) / rect.width;
+    setVolume(vol);
+    setIsMuted(vol === 0);
+  };
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (!isMuted) setVolume(0);
+    else setVolume(0.8);
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Reset video states when modal opens
+  useEffect(() => {
+    if (modalUrl) {
+      setVideoLoading(true);
+      setVideoReady(false);
+      setIsPlaying(false);
+      setPlayed(0);
+      setDuration(0);
+    }
+  }, [modalUrl]);
+
+  if (status === 'loading') {
+    return (
+      <div className="scoring-container">
+        <motion.h2 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="dashboard-title"
+        >
+          Scoring Dashboard
+        </motion.h2>
+        <div className="loading-container">
+          <motion.div
+            className="loading-spinner"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          />
+          <p>Loading scoring data…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'failed') {
+    return (
+      <div className="scoring-container">
+        <h2 className="dashboard-title">Scoring Dashboard</h2>
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="error-message"
+        >
+          Error: {error}
+        </motion.p>
+      </div>
+    );
+  }
 
   return (
     <div className="scoring-container">
-      <h2>Scoring Dashboard</h2>
+      <motion.h2 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="dashboard-title"
+      >
+        Scoring Dashboard
+      </motion.h2>
       <div className="scoring-cards">
-        {items.map((entry) => {
-          const sd = entry.scoring_data?.[0] || {};
-          const batting = sd.BattingParameters || {};
-          const onStrike = batting.OnStrike || {};
-          const nonStriker = batting.NonStriker || {};
-          const bowler = sd.BowlingParameters?.Bowler || {};
-          const bp = sd.BattingParameters || {};
+        <AnimatePresence>
+          {items.map((entry, index) => {
+            const sd = entry.scoring_data?.[0] || {};
+            const batting = sd.BattingParameters || {};
+            const onStrike = batting.OnStrike || {};
+            const nonStriker = batting.NonStriker || {};
+            const bowler = sd.BowlingParameters?.Bowler || {};
+            const bp = sd.BattingParameters || {};
+            const isVisible = visibleCards.includes(index);
+            
+            if (!isVisible) return null;
 
-          return (
-            <div className="scoring-card" key={entry.index}>
-              <div
-                className="video-wrapper"
-                onClick={() => setModalUrl(entry.video)}
+            return (
+              <motion.div 
+                key={entry.index}
+                className="scoring-card"
+                initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                transition={{ 
+                  duration: 0.6,
+                  type: "spring",
+                  stiffness: 80
+                }}
+                whileHover={{ 
+                  y: -4,
+                  transition: { duration: 0.2 }
+                }}
               >
-                <span className="play-overlay">▶</span>
-                {!loadedVideos.has(entry.index) && <div className="video-skeleton" />}
-                <video
-                  src={entry.video}
-                  preload="metadata"
-                  muted
-                  playsInline
-                  onLoadedData={() =>
-                    setLoadedVideos((prev) => new Set(prev).add(entry.index))
-                  }
-                  style={{ opacity: loadedVideos.has(entry.index) ? 1 : 0 }}
-                />
-              </div>
-              <div className="score-info">
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                  <h3 style={{margin:0}}>
-                    Over {entry.displayover.toFixed(1)} – {entry.event}
-                  </h3>
-                  <Link className="view-scoring" to={`/scoring/${entry.index}`}>View Scoring</Link>
-                </div>
-                <p>
-                  <strong>Batter:</strong> {onStrike.batsname}
-                </p>
-                <p>
-                  <strong>Non-Striker:</strong> {nonStriker.nonstrikername}
-                </p>
-                <p>
-                  <strong>Bowler:</strong> {bowler.bowlername}
-                </p>
-              </div>
-            </div>
-          );
-        })}
+                <motion.div
+                  className="video-wrapper"
+                  onClick={() => setModalUrl(entry.video)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <motion.span 
+                    className="play-overlay"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.3, type: "spring" }}
+                    whileHover={{ scale: 1.1 }}
+                  >
+                    <span style={{ paddingLeft: '.5rem',
+                      paddingBottom: '.2rem'
+                     }}>▶</span>
+                  </motion.span>
+                  <AnimatePresence>
+                    {!loadedVideos.has(entry.index) && (
+                      <motion.div 
+                        className="video-skeleton"
+                        initial={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    )}
+                  </AnimatePresence>
+                  <motion.video
+                    src={entry.video}
+                    preload="metadata"
+                    muted
+                    playsInline
+                    onLoadedData={() =>
+                      setLoadedVideos((prev) => new Set(prev).add(entry.index))
+                    }
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: loadedVideos.has(entry.index) ? 1 : 0 }}
+                    transition={{ duration: 0.5 }}
+                  />
+                </motion.div>
+                
+                <motion.div 
+                  className="score-info"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <motion.div 
+                    className="score-header"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <motion.h3 
+                      className="over-title"
+                      initial={{ scale: 0.9 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.4, type: "spring" }}
+                    >
+                      Over {entry.displayover.toFixed(1)} 
+                      <motion.span 
+                        className="event-badge"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        {entry.event}
+                      </motion.span>
+                    </motion.h3>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.6 }}
+                    >
+                      <Link 
+                        className="view-scoring" 
+                        to={`/scoring/${entry.index}`}
+                      >
+                        View Scoring →
+                      </Link>
+                    </motion.div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="player-stats"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.7 }}
+                  >
+                    {[
+                      { label: 'Batter', value: onStrike.batsname, icon: '🏏' },
+                      { label: 'Non-Striker', value: nonStriker.nonstrikername, icon: '🏃' },
+                      { label: 'Bowler', value: bowler.bowlername, icon: '🥎' },
+                      { label: 'Bowling Style', value: sd.BowlingParameters?.BowlingStyle, icon: '⚡' }
+                    ].map((stat, statIndex) => (
+                      <motion.div
+                        key={stat.label}
+                        className="stat-row"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.8 + statIndex * 0.1 }}
+                      >
+                        <span className="stat-icon">{stat.icon}</span>
+                        <span className="stat-label">{stat.label}:</span>
+                        <span className="stat-value">{stat.value || 'N/A'}</span>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </motion.div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
 
-      {modalUrl && (
-        <div className="modal-overlay" onClick={() => setModalUrl(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={() => setModalUrl(null)}>
-              ×
-            </button>
-            <ReactPlayer url={modalUrl} controls width="100%" height="auto" />
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {modalUrl && (
+          <motion.div 
+            className="modal-overlay" 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setModalUrl(null)}
+          >
+            <motion.div 
+              className="modal-content" 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.button 
+                className="modal-close" 
+                onClick={() => setModalUrl(null)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                ×
+              </motion.button>
+              <div className="video-player-wrapper">
+                {/* Video Loading State */}
+                <AnimatePresence>
+                  {videoLoading && (
+                    <motion.div 
+                      className="video-loading-overlay"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="loading-content">
+                        <motion.div
+                          className="loading-spinner-video"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        />
+                        <motion.p
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          Loading video...
+                        </motion.p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <ReactPlayer 
+                  ref={playerRef}
+                  url={modalUrl} 
+                  controls={false}
+                  width="100%" 
+                  height="80vh"
+                  playing={isPlaying}
+                  volume={isMuted ? 0 : volume}
+                  onProgress={handleProgress}
+                  onDuration={handleDuration}
+                  onReady={() => {
+                    setVideoLoading(false);
+                    setVideoReady(true);
+                  }}
+                  style={{
+                    background: '#000',
+                    borderRadius: '16px',
+                    opacity: videoReady ? 1 : 0,
+                    transition: 'opacity 0.3s ease'
+                  }}
+                />
+                
+                {/* Custom Controls Overlay */}
+                <AnimatePresence>
+                  {videoReady && (
+                    <motion.div 
+                      className="custom-video-controls"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: showControls ? 1 : 0, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                  {/* Play/Pause Button */}
+                  <motion.button
+                    className="play-pause-btn"
+                    onClick={handlePlayPause}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {isPlaying ? (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                      </svg>
+                    ) : (
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"/>
+                      </svg>
+                    )}
+                  </motion.button>
+
+                  {/* Progress Bar */}
+                  <div className="progress-section">
+                    <span className="time-display">{formatTime(played * duration)}</span>
+                    <div className="progress-bar" onClick={handleSeek}>
+                      <div className="progress-track">
+                        <motion.div 
+                          className="progress-fill"
+                          style={{ width: `${played * 100}%` }}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${played * 100}%` }}
+                          transition={{ duration: seeking ? 0 : 0.1 }}
+                        />
+                        <motion.div 
+                          className="progress-thumb"
+                          style={{ left: `${played * 100}%` }}
+                          whileHover={{ scale: 1.2 }}
+                          transition={{ duration: seeking ? 0 : 0.2 }}
+                        />
+                      </div>
+                    </div>
+                    <span className="time-display">{formatTime(duration)}</span>
+                  </div>
+
+                  {/* Volume Controls */}
+                  <div className="volume-section">
+                    <motion.button
+                      className="volume-btn"
+                      onClick={toggleMute}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {isMuted || volume === 0 ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+                        </svg>
+                      ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                        </svg>
+                      )}
+                    </motion.button>
+                    <div className="volume-slider" onClick={handleVolumeChange}>
+                      <div className="volume-track">
+                        <motion.div 
+                          className="volume-fill"
+                          style={{ width: `${isMuted ? 0 : volume * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
