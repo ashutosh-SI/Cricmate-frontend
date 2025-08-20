@@ -8,12 +8,14 @@ import AiCommentary from './pages/AiCommentary.jsx';
 import ScoringDashboard from './pages/ScoringDashboard.jsx';
 import ScoringInterface from './pages/ScoringInterface.jsx';
 import FastHighlights from './pages/FastHighlights.jsx';
+import ApiProfileToggle from './components/ApiProfileToggle.jsx';
 
 function App() {
   const [count, setCount] = useState(0)
 
   return (
     <div className="App">
+      <ApiProfileToggle />
       <nav>
         <Link to="/">Home</Link> {' '}
         <Link to="/scoring">Scoring Dashboard</Link> {' '}

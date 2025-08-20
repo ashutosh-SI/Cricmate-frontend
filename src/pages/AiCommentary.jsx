@@ -21,6 +21,7 @@ const AiCommentary = () => {
   const commentary = useSelector(selectAllCommentary);
   const status = useSelector(selectStatus);
   const error = useSelector(selectError);
+  const POLL_INTERVAL_MS = 5000;
   const selectedIds = useSelector(selectSelectedIds);
   const manual = useSelector(selectManual);
 
@@ -39,6 +40,16 @@ const AiCommentary = () => {
   useEffect(() => {
     if (status === 'idle') {
       dispatch(fetchCommentary());
+    }
+  }, [status, dispatch]);
+
+  // Polling
+  useEffect(() => {
+    if (status !== 'failed') {
+      const id = setInterval(() => {
+        dispatch(fetchCommentary());
+      }, POLL_INTERVAL_MS);
+      return () => clearInterval(id);
     }
   }, [status, dispatch]);
 

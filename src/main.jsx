@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom';
 import './index.css';
 import App from './App.jsx';
 import { store } from './store/index.js';
+import { initApiSwitcher } from './utils/apiSwitcher.js';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -16,3 +17,6 @@ createRoot(document.getElementById('root')).render(
     </Provider>
   </StrictMode>,
 );
+
+// Initialize API switcher after app mounts
+initApiSwitcher();
