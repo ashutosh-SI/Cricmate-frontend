@@ -20,6 +20,7 @@ const commentarySlice = createSlice({
     error: null,
     selectedIds: [],
     manual: {}, // key: index, value: text
+    refreshing: false,
   },
   reducers: {
     toggleSelect: (state, action) => {
@@ -38,15 +39,26 @@ const commentarySlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchCommentary.pending, (state) => {
-        state.status = 'loading';
+        if (state.status === 'idle') {
+          state.status = 'loading';
+        } else {
+          state.refreshing = true;
+        }
       })
       .addCase(fetchCommentary.fulfilled, (state, action) => {
         state.status = 'succeeded';
         state.items = action.payload;
+        state.error = null;
+        state.refreshing = false;
       })
       .addCase(fetchCommentary.rejected, (state, action) => {
-        state.status = 'failed';
+        if (state.status === 'idle') {
+          state.status = 'failed';
+        } else {
+          state.status = 'succeeded';
+        }
         state.error = action.error.message;
+        state.refreshing = false;
       });
   },
 });
@@ -56,6 +68,7 @@ export const selectStatus = (state) => state.commentary.status;
 export const selectError = (state) => state.commentary.error;
 export const selectSelectedIds = (state) => state.commentary.selectedIds;
 export const selectManual = (state) => state.commentary.manual;
+export const selectCommentaryRefreshing = (state) => state.commentary.refreshing;
 
 export const { toggleSelect, setManualCommentary } = commentarySlice.actions;
 

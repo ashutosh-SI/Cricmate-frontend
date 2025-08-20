@@ -40,10 +40,21 @@ const ScoringDashboard = () => {
   const playerRef = useRef(null);
   const status = useSelector(selectScoringStatus);
   const error = useSelector(selectScoringError);
+  const POLL_INTERVAL_MS = 5000; // 5s polling
 
   useEffect(() => {
     if (status === 'idle') {
       dispatch(fetchScoring());
+    }
+  }, [status, dispatch]);
+
+  // Polling for frequent updates
+  useEffect(() => {
+    if (status !== 'failed') {
+      const intervalId = setInterval(() => {
+        dispatch(fetchScoring());
+      }, POLL_INTERVAL_MS);
+      return () => clearInterval(intervalId);
     }
   }, [status, dispatch]);
 

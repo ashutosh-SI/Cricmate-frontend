@@ -24,6 +24,7 @@ const FastHighlights = () => {
   const items = useSelector(selectHighlightsItems);
   const status = useSelector(selectHighlightsStatus);
   const error = useSelector(selectHighlightsError);
+  const POLL_INTERVAL_MS = 5000;
   
   // Scoring data for AI Magic
   const scoringItems = useSelector(selectScoringItems);
@@ -112,6 +113,15 @@ const FastHighlights = () => {
       })));
     }
   }, [items, scoringItems, scoringStatus]);
+  // Polling
+  useEffect(() => {
+    if (status !== 'failed') {
+      const id = setInterval(() => {
+        dispatch(fetchHighlights());
+      }, POLL_INTERVAL_MS);
+      return () => clearInterval(id);
+    }
+  }, [status, dispatch]);
 
   // Staggered card reveal
   useEffect(() => {
