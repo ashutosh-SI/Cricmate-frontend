@@ -28,6 +28,7 @@ const AiCommentary = () => {
   // track per-card language selection: default english
   const [langMap, setLangMap] = useState({});
   const [editingMap, setEditingMap] = useState({});
+  const [publishMap, setPublishMap] = useState({}); // index -> 'published' | 'unpublished'
   const [visibleCards, setVisibleCards] = useState([]);
 
   const languages = [
@@ -36,6 +37,28 @@ const AiCommentary = () => {
     { key: 'marathi', label: 'MR' },
     { key: 'hinglish', label: 'HN' },
   ];
+
+  const AUTO_CYCLE_MS = 4000;
+
+  // Auto-cycle displayed language for each card (pauses for cards being edited)
+  useEffect(() => {
+    if (status !== 'succeeded' || commentary.length === 0) return;
+    const langKeys = languages.map((l) => l.key);
+    const intervalId = setInterval(() => {
+      setLangMap((prev) => {
+        const next = { ...prev };
+        commentary.forEach((ball) => {
+          if (editingMap[ball.index]) return;
+          const current = next[ball.index] || 'english';
+          const idx = langKeys.indexOf(current);
+          const nextKey = langKeys[(idx + 1) % langKeys.length];
+          next[ball.index] = nextKey;
+        });
+        return next;
+      });
+    }, AUTO_CYCLE_MS);
+    return () => clearInterval(intervalId);
+  }, [status, commentary, editingMap]);
 
   useEffect(() => {
     if (status === 'idle') {
@@ -75,7 +98,7 @@ const AiCommentary = () => {
           animate={{ opacity: 1, y: 0 }}
           className="feed-title"
         >
-          AI Commentary Feed
+          AI Commentary and Cricket Assistant Bot
         </motion.h2>
         <div className="loading-container">
           <motion.div
@@ -92,7 +115,7 @@ const AiCommentary = () => {
   if (status === 'failed') {
     return (
       <div className="feed-container">
-        <h2 className="feed-title">AI Commentary Feed</h2>
+        <h2 className="feed-title">AI Commentary and Cricket Assistant Bot</h2>
         <motion.p 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -113,7 +136,7 @@ const AiCommentary = () => {
           transition={{ duration: 0.6 }}
           className="feed-title"
         >
-          AI Commentary Feed
+          AI Commentary and Cricket Assistant Bot
         </motion.h2>
         <div className="commentary-cards">
           <AnimatePresence>
@@ -188,6 +211,26 @@ const AiCommentary = () => {
                     >
                       {ball.event}
                     </motion.span>
+                    <div className="publish-controls">
+                      <span className={`pub-badge ${publishMap[ball.index] === 'published' ? 'published' : 'unpublished'}`}>
+                        {publishMap[ball.index] === 'published' ? 'Published' : 'Unpublished'}
+                      </span>
+                      <div
+                        className={`pub-switch ${publishMap[ball.index] === 'published' ? 'published' : ''}`}
+                        role="switch"
+                        aria-checked={publishMap[ball.index] === 'published'}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPublishMap((prev) => ({
+                            ...prev,
+                            [ball.index]: prev[ball.index] === 'published' ? 'unpublished' : 'published'
+                          }));
+                        }}
+                        title={publishMap[ball.index] === 'published' ? 'Unpublish' : 'Publish'}
+                      >
+                        <div className="knob"><span className="check">✓</span></div>
+                      </div>
+                    </div>
                   </motion.div>
                   
                   <motion.div 
