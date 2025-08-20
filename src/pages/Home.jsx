@@ -6,48 +6,35 @@ import './Home.css';
 const Home = () => {
   return (
     <div className="home-container">
-      {/* Paper Shaders Background */}
-      <div className="shader-background">
-        {/* Primary ColorPanels Layer - Cricmate brand gradients */}
-        <ColorPanels
-          speed={0.4}
-          colors={[
-            '#0d0113', // Cricmate dark background
-            '#e83f7e', // Cricmate primary pink
-            '#8193c0', // Cricmate accent blue
-            '#1a1a1a', // Cricmate surface
-            '#2d1b3d', // Deep purple blend
-            '#d63384', // Cricket ball red
-            '#1e3a5f', // Deep cricket blue
-            '#0f4c75', // Stadium blue
-            '#4a5568', // Pitch gray
-            '#2a4a3d', // Cricket field green
-            '#6b46c1', // Royal purple
-            '#0d0113'  // Return to dark
-          ]}
-          className="primary-panels"
-        />
-        
-        {/* Secondary Layer for depth and flow (same palette for unified top/bottom) */}
-        <ColorPanels
-          speed={0.25}
-          colors={[
-            '#0d0113', '#e83f7e', '#8193c0', '#1a1a1a', '#2d1b3d',
-            '#d63384', '#1e3a5f', '#0f4c75', '#4a5568', '#2a4a3d', '#6b46c1', '#0d0113'
-          ]}
-          className="secondary-panels"
-        />
-        
-        {/* Accent Layer for extra motion (same palette for cohesion) */}
-        <ColorPanels
-          speed={0.15}
-          colors={[
-            '#0d0113', '#e83f7e', '#8193c0', '#1a1a1a', '#2d1b3d',
-            '#d63384', '#1e3a5f', '#0f4c75', '#4a5568', '#2a4a3d', '#6b46c1', '#0d0113'
-          ]}
-          className="accent-panels"
-        />
-      </div>
+             {/* Paper Shaders Background - Optimized for Performance */}
+       <div className="shader-background">
+         {/* Primary ColorPanels Layer - Core Cricmate brand flow */}
+         <ColorPanels
+           speed={0.2}
+           colors={[
+             '#0d0113', // Cricmate dark
+             '#e83f7e', // Cricmate primary pink
+             '#8193c0', // Cricmate accent blue
+             '#1a1a1a', // Cricmate surface
+             '#e83f7e', // Return to primary
+             '#0d0113'  // Return to dark
+           ]}
+           className="primary-panels"
+         />
+         
+         {/* Secondary Layer - Subtle depth with reduced complexity */}
+         <ColorPanels
+           speed={0.1}
+           colors={[
+             '#2d1b3d', // Deep purple blend
+             '#e83f7e', // Cricmate primary
+             '#8193c0', // Cricmate accent
+             '#1a1a1a', // Surface
+             '#2d1b3d'  // Return to deep purple
+           ]}
+           className="secondary-panels"
+         />
+       </div>
 
       {/* Content Layer */}
       <div className="content-layer">
@@ -159,8 +146,8 @@ const Home = () => {
           ))}
         </motion.div>
       </div>
-    </div>
-  );
+  </div>
+);
 };
 
 export default Home;
