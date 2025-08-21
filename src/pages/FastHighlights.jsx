@@ -75,6 +75,7 @@ const FastHighlights = () => {
   const [magicWandAnimation, setMagicWandAnimation] = useState({}); // {cardId: isAnimating}
   const [thumbnailGeneration, setThumbnailGeneration] = useState({}); // {cardId: {loading, imageUrl}}
   const [generatedThumbnails, setGeneratedThumbnails] = useState({}); // {cardId: imageUrl}
+  const [overDataCache, setOverDataCache] = useState({}); // {index: {events, last_ball_scorecard}}
 
 
   
@@ -253,49 +254,92 @@ const FastHighlights = () => {
       let events = ["1", "Dot", "4", "1", "2", "Dot"]; // fallback
       let last_ball_scorecard = "MI 98-3"; // fallback
       
-      if (scoringData && scoringData.scoring_data && scoringData.scoring_data.length > 0) {
-        // Extract events from scoring data
-        events = scoringData.scoring_data.map(ball => {
-          const event = ball.Commentary?.Event || "Dot";
-          const runsScored = ball.BattingParameters?.RunsScored?.hit_to_fence_value || "0";
+      // Check cache first for this over
+      const cacheKey = highlight.index;
+      if (overDataCache[cacheKey]) {
+        console.log('📦 Using cached data for over:', cacheKey);
+        events = overDataCache[cacheKey].events;
+        last_ball_scorecard = overDataCache[cacheKey].last_ball_scorecard;
+      } else if (scoringItems && scoringItems.length > 0) {
+        console.log('🔄 Processing ALL scoring data for cache:', cacheKey);
+        console.log('📊 Total scoring items available:', scoringItems.length);
+        
+        // Extract events from ALL scoring items (not just the matching one)
+        const allEvents = [];
+        
+        scoringItems.forEach((item, itemIndex) => {
+          console.log(`📋 Processing scoring item ${itemIndex + 1}:`, { index: item.index, event: item.event });
           
-          console.log('🏏 Processing ball event:', { event, runsScored });
-          
-          // Map events to expected format
-          switch (event.toLowerCase()) {
-            case 'four':
-            case 'boundary':
-              return "4";
-            case 'six':
-            case 'maximum':
-              return "6";
-            case 'single':
-              return "1";
-            case 'two runs':
-            case 'double':
-              return "2";
-            case 'three runs':
-            case 'triple':
-              return "3";
-            case 'dot ball':
-            case 'dot':
-              return "Dot";
-            default:
-              // For any other case, use the runs scored value
-              const runs = parseInt(runsScored) || 0;
-              return runs === 0 ? "Dot" : runs.toString();
+          if (item.scoring_data && item.scoring_data.length > 0) {
+            item.scoring_data.forEach(ball => {
+              const event = ball.Commentary?.Event || "Dot ball";
+              const runsScored = ball.BattingParameters?.RunsScored?.hit_to_fence_value || "0";
+              
+              console.log('🏏 Processing ball event:', { event, runsScored });
+              
+              // Map events to expected format based on your actual API response
+              const eventLower = event.toLowerCase().trim();
+              
+              let mappedEvent;
+              
+              // Check for boundaries first
+              if (eventLower.includes('four') || eventLower === 'boundary') {
+                mappedEvent = "4";
+              } else if (eventLower.includes('six') || eventLower === 'maximum') {
+                mappedEvent = "6";
+              } else if (eventLower === 'single' || eventLower === 'one run') {
+                mappedEvent = "1";
+              } else if (eventLower === 'two runs' || eventLower === 'double') {
+                mappedEvent = "2";
+              } else if (eventLower === 'three runs' || eventLower === 'triple') {
+                mappedEvent = "3";
+              } else if (eventLower === 'dot ball' || eventLower === 'dot') {
+                mappedEvent = "Dot";
+              } else {
+                // For any other case, use the runs scored value as fallback
+                const runs = parseInt(runsScored) || 0;
+                if (runs === 4) mappedEvent = "4";
+                else if (runs === 6) mappedEvent = "6";
+                else if (runs === 1) mappedEvent = "1";
+                else if (runs === 2) mappedEvent = "2";
+                else if (runs === 3) mappedEvent = "3";
+                else mappedEvent = runs === 0 ? "Dot" : runs.toString();
+              }
+              
+              allEvents.push(mappedEvent);
+            });
           }
         });
         
-        // Get the last ball's scorecard
-        const lastBall = scoringData.scoring_data[scoringData.scoring_data.length - 1];
-        last_ball_scorecard = lastBall?.Commentary?.DisplayScore || "MI 98-3";
+        events = allEvents;
         
-        console.log('✅ Successfully extracted data from scoring API:');
-        console.log('   📋 Events:', events);
-        console.log('   🏏 Last ball scorecard:', last_ball_scorecard);
+        // Get the last ball's scorecard using count logic
+        // Find the last item (count-1 index) and get its DisplayScore
+        const lastItemIndex = scoringItems.length - 1;
+        const lastItem = scoringItems[lastItemIndex];
+        
+        if (lastItem && lastItem.scoring_data && lastItem.scoring_data.length > 0) {
+          const lastBallInItem = lastItem.scoring_data[lastItem.scoring_data.length - 1];
+          last_ball_scorecard = lastBallInItem?.Commentary?.DisplayScore || "MI 98-3";
+        }
+        
+        console.log('📊 Found last item at index:', lastItemIndex);
+        console.log('🎯 Last item details:', { index: lastItem?.index, event: lastItem?.event });
+        
+        // Cache the processed data for future use
+        setOverDataCache(prev => ({
+          ...prev,
+          [cacheKey]: {
+            events,
+            last_ball_scorecard
+          }
+        }));
+        
+        console.log('✅ Successfully extracted and cached data from scoring API:');
+        console.log('   📋 All Events Combined:', events);
+        console.log('   🏏 Last ball scorecard (from item', lastItemIndex + 1, '):', last_ball_scorecard);
       } else {
-        console.log('⚠️ Using fallback data - scoring data not found or empty');
+        console.log('⚠️ Using fallback data - no scoring items available');
       }
       
       const payload = {
@@ -305,7 +349,12 @@ const FastHighlights = () => {
         aspect_ratio: aspectRatio
       };
 
-      console.log('🎯 Final AI Magic Payload for highlight', highlight.index, ':', payload);
+      console.log('🎯 Final AI Magic Payload for highlight', highlight.index, ':');
+      console.log('   📊 Events:', events);
+      console.log('   🎯 Over Number:', highlight.over_number);
+      console.log('   🏏 Last Ball Scorecard:', last_ball_scorecard);
+      console.log('   📱 Aspect Ratio:', aspectRatio);
+      console.log('   📦 Full Payload:', payload);
 
       setThumbnailGeneration(prev => ({
         ...prev,
