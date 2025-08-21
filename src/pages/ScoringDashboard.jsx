@@ -16,6 +16,13 @@ const ScoringDashboard = () => {
   const dispatch = useDispatch();
   const items = useSelector(selectScoringItems);
   const [modalUrl, setModalUrl] = useState(null);
+  const [currentVideoItem, setCurrentVideoItem] = useState(null); // Current video's scoring data
+  const [showOverlay, setShowOverlay] = useState(false); // Overlay visibility
+  const [overlayType, setOverlayType] = useState(null); // Type of overlay to show
+  const [showBatsmanStats, setShowBatsmanStats] = useState(false); // Batsman stats loading state
+  
+  // Ref to track overlay state without causing re-renders
+  const overlayActiveRef = useRef(false);
 
   // Function to convert text to Pascal case (Title Case)
   const toPascalCase = (text) => {
@@ -111,6 +118,361 @@ const ScoringDashboard = () => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Batsman Overlay Component with Loading States
+  const BatsmanOverlay = ({ batsmanData, event, showStats = false }) => (
+    <div className="scoring-overlay batsman-overlay compact">
+      <div className="overlay-header">
+        <span className="overlay-title">🏏 ON STRIKE</span>
+        <div className="overlay-header-right">
+          <span className="overlay-event">{event}</span>
+          <button 
+            className="overlay-close-btn"
+            onClick={() => {
+              setShowOverlay(false);
+              setOverlayType(null);
+              overlayActiveRef.current = false;
+            }}
+          >
+            ×
+          </button>
+        </div>
+      </div>
+      
+      <div className="overlay-content">
+        <div className="player-main">
+          <div className="player-name-large">
+            {batsmanData?.batsname || 'Unknown Batsman'}
+          </div>
+          <div className="player-position">
+            {batsmanData?.Pos && batsmanData.Pos.trim() && batsmanData.Pos !== 'null' 
+              ? (isNaN(batsmanData.Pos) ? batsmanData.Pos : `Position #${batsmanData.Pos}`)
+              : 'On Strike'
+            }
+          </div>
+        </div>
+        
+        <div className="player-stats-grid">
+          <div className="stat-item">
+            <span className="stat-label">Runs</span>
+            {showStats ? (
+              <span className="stat-value">{batsmanData?.R || '0'}</span>
+            ) : (
+              <div className="stat-loading">
+                <div className="loading-dots">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Balls</span>
+            {showStats ? (
+              <span className="stat-value">{batsmanData?.B || '0'}</span>
+            ) : (
+              <div className="stat-loading">
+                <div className="loading-dots">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Fours</span>
+            {showStats ? (
+              <span className="stat-value">{batsmanData?.F || '0'}</span>
+            ) : (
+              <div className="stat-loading">
+                <div className="loading-dots">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">S/R</span>
+            {showStats ? (
+              <span className="stat-value">{batsmanData?.S || '0.00'}</span>
+            ) : (
+              <div className="stat-loading">
+                <div className="loading-dots">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Bowler Overlay Component with Loading States (same pattern as batsman)
+  const BowlerOverlayCompact = ({ bowlerData, bowlingStyle, event, showStats = false }) => (
+    <div className="scoring-overlay bowler-overlay-compact compact">
+      <div className="overlay-header">
+        <span className="overlay-title">🥎 BOWLING</span>
+        <div className="overlay-header-right">
+          <span className="overlay-event">{event}</span>
+          <button 
+            className="overlay-close-btn"
+            onClick={() => {
+              setShowOverlay(false);
+              setOverlayType(null);
+              overlayActiveRef.current = false;
+            }}
+          >
+            ×
+          </button>
+        </div>
+      </div>
+      
+      <div className="overlay-content">
+        <div className="player-main">
+          <div className="player-name-large">
+            {bowlerData?.bowlername || 'Unknown Bowler'}
+          </div>
+          <div className="player-position">
+            {bowlingStyle && bowlingStyle.trim() && bowlingStyle !== 'null' 
+              ? bowlingStyle 
+              : 'Fast Medium'
+            }
+          </div>
+        </div>
+        
+        <div className="player-stats-grid">
+          <div className="stat-item">
+            <span className="stat-label">Overs</span>
+            {showStats ? (
+              <span className="stat-value">{bowlerData?.O || '0'}</span>
+            ) : (
+              <div className="stat-loading">
+                <div className="loading-dots">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Runs</span>
+            {showStats ? (
+              <span className="stat-value">{bowlerData?.R || '0'}</span>
+            ) : (
+              <div className="stat-loading">
+                <div className="loading-dots">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Wickets</span>
+            {showStats ? (
+              <span className="stat-value">{bowlerData?.W || '0'}</span>
+            ) : (
+              <div className="stat-loading">
+                <div className="loading-dots">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Dots</span>
+            {showStats ? (
+              <span className="stat-value">{bowlerData?.D || '0'}</span>
+            ) : (
+              <div className="stat-loading">
+                <div className="loading-dots">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Pitch Overlay Component - Simple div without animations
+  const PitchOverlay = ({ battingData, event }) => {
+    const pitchType = (battingData?.Pitch || '').toLowerCase().replace(/\s+/g, '-');
+    
+    return (
+      <div className="scoring-overlay pitch-overlay">
+        <div className="overlay-header">
+          <span className="overlay-title">🎯 PITCH ANALYSIS</span>
+          <div className="overlay-header-right">
+            <span className="overlay-event">{event}</span>
+            <button 
+              className="overlay-close-btn"
+              onClick={() => {
+                setShowOverlay(false);
+                setOverlayType(null);
+                overlayActiveRef.current = false;
+              }}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+        
+        <div className="overlay-content">
+          <div className={`pitch-wrapper pitch-${pitchType}`}>
+            <img src={pitchImg} className="pitch-img" alt="Cricket Pitch" />
+            <div className="highlight good" />
+            <div className="highlight full" />
+            <div className="highlight yorker" />
+            <div className="highlight short-of-good" />
+            <div className="highlight short" />
+          </div>
+          
+          <div className="pitch-info">
+            <div className="pitch-length">
+              <span className="pitch-label">Length:</span>
+              <span className="pitch-value">
+                {battingData?.Pitch && battingData.Pitch.trim() && battingData.Pitch !== 'null' 
+                  ? battingData.Pitch 
+                  : 'Good Length'
+                }
+              </span>
+            </div>
+            <div className="zone-played">
+              <span className="zone-label">Zone:</span>
+              <span className="zone-value">
+                {battingData?.ZonePlayedIn && battingData.ZonePlayedIn.trim() && battingData.ZonePlayedIn !== 'null' 
+                  ? battingData.ZonePlayedIn 
+                  : 'Off Side'
+                }
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Shot Type Overlay Component
+  const ShotTypeOverlay = ({ shotData, event }) => (
+    <div className="scoring-overlay shot-overlay">
+      <div className="overlay-header">
+        <span className="overlay-title">🎾 SHOT PLAYED</span>
+        <div className="overlay-header-right">
+          <span className="overlay-event">{event}</span>
+          <button 
+            className="overlay-close-btn"
+            onClick={() => {
+              setShowOverlay(false);
+              setOverlayType(null);
+              overlayActiveRef.current = false;
+            }}
+          >
+            ×
+          </button>
+        </div>
+      </div>
+      
+      <div className="overlay-content">
+        <div className="shot-main">
+          <div className="shot-stroke">
+            {shotData?.Stroke && shotData.Stroke.trim() && shotData.Stroke !== 'null' 
+              ? shotData.Stroke 
+              : 'Defensive Shot'
+            }
+          </div>
+          <div className="shot-type">
+            {shotData?.Type && shotData.Type.trim() && shotData.Type !== 'null' 
+              ? shotData.Type 
+              : 'Standard'
+            } • {shotData?.Trace && shotData.Trace.trim() && shotData.Trace !== 'null' 
+              ? shotData.Trace 
+              : 'Ground'
+            }
+          </div>
+        </div>
+        
+        <div className="shot-details">
+          <div className="shot-detail-item">
+            <span className="detail-label">Contact:</span>
+            <span className="detail-value">
+              {shotData?.Connect && shotData.Connect.trim() && shotData.Connect !== 'null' 
+                ? shotData.Connect 
+                : 'Middle'
+              }
+            </span>
+          </div>
+          <div className="shot-detail-item">
+            <span className="detail-label">Position:</span>
+            <span className="detail-value">
+              {shotData?.CreasePosition && shotData.CreasePosition.trim() && shotData.CreasePosition !== 'null' 
+                ? shotData.CreasePosition 
+                : 'Front Foot'
+              }
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Bowler Stats Overlay Component - Simple div without animations
+  const BowlerStatsOverlay = ({ bowlerData, bowlingStyle, onStrike, event }) => (
+    <div className="scoring-overlay bowler-overlay">
+      <div className="overlay-header">
+        <span className="overlay-title">🥎 BOWLER STATS</span>
+        <div className="overlay-header-right">
+          <span className="overlay-event">{event}</span>
+          <button 
+            className="overlay-close-btn"
+            onClick={() => {
+              setShowOverlay(false);
+              setOverlayType(null);
+              overlayActiveRef.current = false;
+            }}
+          >
+            ×
+          </button>
+        </div>
+      </div>
+      
+      <div className="overlay-content">
+        <div className="bowler-main">
+          <div className="bowler-name">
+            {bowlerData?.bowlername || 'Unknown Bowler'}
+          </div>
+          <div className="bowler-style">
+            {bowlingStyle && bowlingStyle.trim() && bowlingStyle !== 'null' 
+              ? bowlingStyle 
+              : 'Fast Medium'
+            }
+          </div>
+        </div>
+        
+        <div className="bowler-stats-grid">
+          <div className="stat-item">
+            <span className="stat-label">Overs</span>
+            <span className="stat-value">{bowlerData?.O || '0'}</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Runs</span>
+            <span className="stat-value">{bowlerData?.R || '0'}</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Wickets</span>
+            <span className="stat-value">{bowlerData?.W || '0'}</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Dots</span>
+            <span className="stat-value">{bowlerData?.D || '0'}</span>
+          </div>
+        </div>
+
+        <div className="vs-batsman">
+          <span className="vs-label">vs</span>
+          <span className="batsman-name">{onStrike?.batsname || 'Unknown'}</span>
+        </div>
+      </div>
+    </div>
+  );
+
   // Reset video states when modal opens
   useEffect(() => {
     if (modalUrl) {
@@ -119,8 +481,62 @@ const ScoringDashboard = () => {
       setIsPlaying(false);
       setPlayed(0);
       setDuration(0);
+      setShowOverlay(false);
+      setOverlayType(null);
+      setShowBatsmanStats(false);
+      
+      // Reset overlay ref
+      overlayActiveRef.current = false;
     }
   }, [modalUrl]);
+
+  // Handle overlay timing logic separately from handleProgress
+  useEffect(() => {
+    if (!duration || !videoReady) return;
+    
+    const currentTime = played * duration;
+    
+    // Complex overlay sequence logic
+    let newOverlayType = null;
+    let shouldShowOverlay = false;
+    let newShowBatsmanStats = showBatsmanStats;
+    
+    if (currentTime >= 0 && currentTime <= 5) {
+      // Batsman and bowler cards from 0-5 seconds (side by side)
+      shouldShowOverlay = true;
+      newOverlayType = 'batsman-bowler';
+      // Show stats from 2 seconds onwards
+      newShowBatsmanStats = currentTime >= 2;
+    } else if (currentTime >= 6 && currentTime <= 9) {
+      // Shot card from 6-9 seconds (bowler overlay is removed)
+      shouldShowOverlay = true;
+      newOverlayType = 'shot';
+    }
+    
+    // Update batsman stats loading state
+    if (newShowBatsmanStats !== showBatsmanStats) {
+      setShowBatsmanStats(newShowBatsmanStats);
+    }
+    
+    // Create a combined state for comparison
+    const currentState = overlayActiveRef.current;
+    const newState = shouldShowOverlay ? newOverlayType : false;
+    
+    // Only update when overlay state changes
+    if (currentState !== newState) {
+      overlayActiveRef.current = newState;
+      
+      if (shouldShowOverlay) {
+        setShowOverlay(true);
+        setOverlayType(newOverlayType);
+      } else {
+        setShowOverlay(false);
+        setOverlayType(null);
+      }
+    }
+  }, [played, showBatsmanStats]);
+
+
 
   if (status === 'loading') {
     return (
@@ -201,7 +617,10 @@ const ScoringDashboard = () => {
               >
                 <motion.div
                   className="video-wrapper"
-                  onClick={() => setModalUrl(entry.video)}
+                  onClick={() => {
+                    setModalUrl(entry.video);
+                    setCurrentVideoItem(entry);
+                  }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -390,6 +809,47 @@ const ScoringDashboard = () => {
                     transition: 'opacity 0.3s ease'
                   }}
                 />
+                
+                                 {/* Scoring Stats Overlays */}
+                 {/* Batsman Overlay (0-5 seconds) */}
+                 {showOverlay && overlayType === 'batsman-bowler' && currentVideoItem && (
+                   <BatsmanOverlay 
+                     batsmanData={currentVideoItem.scoring_data?.[0]?.BattingParameters?.OnStrike}
+                     event={currentVideoItem.event}
+                     showStats={showBatsmanStats}
+                   />
+                 )}
+
+                 {/* Bowler Overlay (0-5 seconds) - Side by side with batsman */}
+                 {showOverlay && overlayType === 'batsman-bowler' && currentVideoItem && (
+                   <BowlerOverlayCompact 
+                     bowlerData={currentVideoItem.scoring_data?.[0]?.BowlingParameters?.Bowler}
+                     bowlingStyle={currentVideoItem.scoring_data?.[0]?.BowlingParameters?.BowlingStyle}
+                     event={currentVideoItem.event}
+                     showStats={showBatsmanStats}
+                   />
+                 )}
+
+                 {/* Pitch Overlay (3-6 seconds) - Overlaps with batsman/bowler */}
+                 {duration && videoReady && currentVideoItem && 
+                  (() => {
+                    const currentTime = played * duration;
+                    return currentTime >= 3 && currentTime <= 6;
+                  })() && (
+                   <PitchOverlay 
+                     battingData={currentVideoItem.scoring_data?.[0]?.BattingParameters}
+                     event={currentVideoItem.event}
+                   />
+                 )}
+
+                 {/* Shot Type Overlay (6-9 seconds) */}
+                 {showOverlay && overlayType === 'shot' && currentVideoItem && (
+                   <ShotTypeOverlay 
+                     shotData={currentVideoItem.scoring_data?.[0]?.BattingParameters?.ShotPlayed}
+                     event={currentVideoItem.event}
+                   />
+                 )}
+               
                 
                 {/* Custom Controls Overlay */}
                 <AnimatePresence>
