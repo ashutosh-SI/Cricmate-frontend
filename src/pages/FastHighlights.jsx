@@ -805,10 +805,12 @@ const FastHighlights = () => {
                         </motion.div>
 
                         <div className={`video-preview-3d ${magicWandAnimation[cardId] ? 'magic-active' : ''}`}>
-                        <div className="video-preview-3d">
+                          {/* Video Skeleton - Loading State */}
                           {!loadedPreviews.has(cardId) && (
                             <div className="video-skeleton" />
                           )}
+                          
+                          {/* Video Element */}
                           <video 
                             className="preview-video"
                             src={highlight.video_h_path}
@@ -818,7 +820,7 @@ const FastHighlights = () => {
                             poster=""
                           />
                           
-                          {/* Magic Wand Animation */}
+                          {/* Magic Wand Animation - AI Magic Active */}
                           <AnimatePresence>
                             {magicWandAnimation[cardId] && (
                               <motion.div
@@ -847,7 +849,7 @@ const FastHighlights = () => {
                             )}
                           </AnimatePresence>
 
-                          {/* Generated Thumbnail Overlay */}
+                          {/* Generated Thumbnail Overlay - AI Magic Result */}
                           <AnimatePresence>
                             {generatedThumbnails[cardId] && (
                               <motion.div
@@ -984,10 +986,12 @@ const FastHighlights = () => {
                         </motion.div>
 
                         <div className={`video-preview-3d ${magicWandAnimation[cardId] ? 'magic-active' : ''}`}>
-                        <div className="video-preview-3d">
+                          {/* Video Skeleton - Loading State */}
                           {!loadedPreviews.has(cardId) && (
                             <div className="video-skeleton" />
                           )}
+                          
+                          {/* Video Element */}
                           <video 
                             className="preview-video"
                             src={highlight.video_v_path}
@@ -997,7 +1001,7 @@ const FastHighlights = () => {
                             poster=""
                           />
                           
-                          {/* Magic Wand Animation */}
+                          {/* Magic Wand Animation - AI Magic Active */}
                           <AnimatePresence>
                             {magicWandAnimation[cardId] && (
                               <motion.div
@@ -1026,7 +1030,7 @@ const FastHighlights = () => {
                             )}
                           </AnimatePresence>
 
-                          {/* Generated Thumbnail Overlay */}
+                          {/* Generated Thumbnail Overlay - AI Magic Result */}
                           <AnimatePresence>
                             {generatedThumbnails[cardId] && (
                               <motion.div
