@@ -45,6 +45,7 @@ const FastHighlights = () => {
   const [videoLoading, setVideoLoading] = useState(true);
   const [videoReady, setVideoReady] = useState(false);
   const [videoSwitchLoading, setVideoSwitchLoading] = useState(false);
+  const [loadedPreviews, setLoadedPreviews] = useState(new Set());
 
   // Debug video switch loading state
   useEffect(() => {
@@ -693,7 +694,7 @@ const FastHighlights = () => {
           animate={{ opacity: 1, y: 0 }}
           className="highlights-title"
         >
-          Fast Highlight Packages
+          Fast Highlight with AI Contextual Summary
         </motion.h2>
         <div className="loading-container">
           <motion.div
@@ -731,7 +732,7 @@ const FastHighlights = () => {
         transition={{ duration: 0.6 }}
       >
         <h2 className="highlights-title">
-          Fast Highlight Packages
+          Fast Highlight with AI Contextual Summary
         </h2>
       </motion.div>
       
@@ -760,7 +761,7 @@ const FastHighlights = () => {
                       opacity: 1, 
                       x: 0, 
                       rotateY: isPulled ? 0 : -15,
-                      z: isPulled ? 50 : index * -10,
+                      z: isPulled ? 50 : 0,
                       scale: isPulled ? 1.05 : 1
                     }}
                     exit={{ opacity: 0, x: -100, rotateY: -15 }}
@@ -777,7 +778,7 @@ const FastHighlights = () => {
                     }}
                     onClick={() => handleCardPull(cardId)}
                     style={{
-                      zIndex: isPulled ? 1000 : 100 - index,
+                      zIndex: isPulled ? 1000 : 1,
                       transformStyle: 'preserve-3d'
                     }}
                   >
@@ -804,6 +805,10 @@ const FastHighlights = () => {
                         </motion.div>
 
                         <div className={`video-preview-3d ${magicWandAnimation[cardId] ? 'magic-active' : ''}`}>
+                        <div className="video-preview-3d">
+                          {!loadedPreviews.has(cardId) && (
+                            <div className="video-skeleton" />
+                          )}
                           <video 
                             className="preview-video"
                             src={highlight.video_h_path}
@@ -866,6 +871,28 @@ const FastHighlights = () => {
                         </div>
 
                         <div className="card-controls-3d">
+                          <div className="publish-row">
+                            <span className={`pub-badge ${loadedPreviews.has(cardId + '-pub') ? 'published' : 'unpublished'}`}>
+                              {loadedPreviews.has(cardId + '-pub') ? 'Published' : 'Unpublished'}
+                            </span>
+                            <div
+                              className={`pub-switch ${loadedPreviews.has(cardId + '-pub') ? 'published' : ''}`}
+                              role="switch"
+                              aria-checked={loadedPreviews.has(cardId + '-pub')}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setLoadedPreviews((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(cardId + '-pub')) next.delete(cardId + '-pub');
+                                  else next.add(cardId + '-pub');
+                                  return next;
+                                });
+                              }}
+                              title={loadedPreviews.has(cardId + '-pub') ? 'Unpublish' : 'Publish'}
+                            >
+                              <div className="knob"><span className="check">✓</span></div>
+                            </div>
+                          </div>
                           <motion.button
                             className="video-btn-3d normal"
                             onClick={(e) => {
@@ -913,7 +940,7 @@ const FastHighlights = () => {
                       opacity: 1, 
                       x: 0, 
                       rotateY: isPulled ? 0 : 15,
-                      z: isPulled ? 50 : index * -10,
+                      z: isPulled ? 50 : 0,
                       scale: isPulled ? 1.05 : 1
                     }}
                     exit={{ opacity: 0, x: 100, rotateY: 15 }}
@@ -930,7 +957,7 @@ const FastHighlights = () => {
                     }}
                     onClick={() => handleCardPull(cardId)}
                     style={{
-                      zIndex: isPulled ? 1000 : 100 - index,
+                      zIndex: isPulled ? 1000 : 1,
                       transformStyle: 'preserve-3d'
                     }}
                   >
@@ -957,6 +984,10 @@ const FastHighlights = () => {
                         </motion.div>
 
                         <div className={`video-preview-3d ${magicWandAnimation[cardId] ? 'magic-active' : ''}`}>
+                        <div className="video-preview-3d">
+                          {!loadedPreviews.has(cardId) && (
+                            <div className="video-skeleton" />
+                          )}
                           <video 
                             className="preview-video"
                             src={highlight.video_v_path}
@@ -1019,6 +1050,28 @@ const FastHighlights = () => {
                         </div>
 
                         <div className="card-controls-3d">
+                          <div className="publish-row">
+                            <span className={`pub-badge ${loadedPreviews.has(cardId + '-pub') ? 'published' : 'unpublished'}`}>
+                              {loadedPreviews.has(cardId + '-pub') ? 'Published' : 'Unpublished'}
+                            </span>
+                            <div
+                              className={`pub-switch ${loadedPreviews.has(cardId + '-pub') ? 'published' : ''}`}
+                              role="switch"
+                              aria-checked={loadedPreviews.has(cardId + '-pub')}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setLoadedPreviews((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(cardId + '-pub')) next.delete(cardId + '-pub');
+                                  else next.add(cardId + '-pub');
+                                  return next;
+                                });
+                              }}
+                              title={loadedPreviews.has(cardId + '-pub') ? 'Unpublish' : 'Publish'}
+                            >
+                              <div className="knob"><span className="check">✓</span></div>
+                            </div>
+                          </div>
                           <motion.button
                             className="video-btn-3d normal"
                             onClick={(e) => {

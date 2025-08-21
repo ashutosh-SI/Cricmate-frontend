@@ -18,9 +18,9 @@ function App() {
       <ApiProfileToggle />
       <nav>
         <Link to="/">Home</Link> {' '}
-        <Link to="/scoring">Scoring Dashboard</Link> {' '}
-        <Link to="/highlights">Fast Highlights</Link>
-        <Link to="/aicommentary">AI Commentary</Link> {' '}
+        <Link to="/scoring">Live Scoring</Link> {' '}
+        <Link to="/highlights">Fast Highlight with AI Contextual Summary</Link>
+        <Link to="/aicommentary">AI Commentary and Cricket Assistant Bot</Link> {' '}
       </nav>
       <Routes>
         <Route path="/" element={<Home />} />

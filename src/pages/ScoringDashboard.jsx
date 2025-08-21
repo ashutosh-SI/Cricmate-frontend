@@ -147,7 +147,7 @@ const ScoringDashboard = () => {
   if (status === 'failed') {
     return (
       <div className="scoring-container">
-        <h2 className="dashboard-title">Scoring Dashboard</h2>
+        <h2 className="dashboard-title">Live Scoring</h2>
         <motion.p 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -167,7 +167,7 @@ const ScoringDashboard = () => {
         transition={{ duration: 0.6 }}
         className="dashboard-title"
       >
-        Scoring Dashboard
+        Live Scoring
       </motion.h2>
       <div className="scoring-cards">
         <AnimatePresence>

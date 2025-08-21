@@ -197,8 +197,8 @@ const Home = () => {
             <div className="demo-header">
               <motion.div className="demo-icon">🤖</motion.div>
               <div className="demo-title-section">
-                <h3>AI Commentary</h3>
-                <p>Multi-language intelligent commentary</p>
+                <h3>AI Commentary and Cricket Assistant Bot</h3>
+                <p>Multi-language insights and an interactive assistant</p>
               </div>
               <motion.div 
                 className="explore-btn"
@@ -367,8 +367,8 @@ const Home = () => {
             <div className="demo-header">
               <motion.div className="demo-icon">⚡</motion.div>
               <div className="demo-title-section">
-                <h3>Fast Highlights</h3>
-                <p>AI-enhanced video highlights</p>
+                <h3>Fast Highlight with AI Contextual Summary</h3>
+                <p>AI-enhanced highlights with smart summaries</p>
               </div>
               <motion.div 
                 className="explore-btn"
