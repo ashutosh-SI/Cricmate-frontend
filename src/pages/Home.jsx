@@ -125,8 +125,17 @@ const Home = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.2, delay: 0.2, ease: "easeOut" }}
           >
-            <span className="brand-accent">Cricmate</span>
+            <span className="brand-accent">CricMate</span>
           </motion.h1>
+
+          <motion.h5
+            className="hero-h5"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, delay: 0.4, ease: "easeOut" }}
+          >
+            From <span className="feature-accent">ball</span> to <span className="highlight-accent">broadcast</span>, instantly
+          </motion.h5>
           
           <motion.p 
             className="hero-subtitle"
@@ -141,7 +150,7 @@ const Home = () => {
 
         </motion.div>
 
-        {/* Compact Feature Cards Row */}
+        {/* Full-width Feature Cards */}
         <motion.div 
           className="feature-cards-row"
           initial={{ opacity: 0, y: 40 }}
@@ -170,8 +179,8 @@ const Home = () => {
                   🤖
                 </motion.div>
                 <div className="card-title">
-                  <h3>AI Commentary</h3>
-                  <p>Multi-language insights</p>
+                  <h3>AI Commentary and Cricket Assistant Bot</h3>
+                  <p>Multi-language insights with an interactive assistant</p>
                 </div>
                 <motion.div 
                   className="card-arrow"
@@ -247,7 +256,7 @@ const Home = () => {
                 </motion.div>
                 <div className="card-title">
                   <h3>Live Scoring</h3>
-                  <p>Real-time stats</p>
+                  <p>Real-time match statistics</p>
                 </div>
                 <motion.div 
                   className="card-arrow"
@@ -318,8 +327,8 @@ const Home = () => {
                   ⚡
                 </motion.div>
                 <div className="card-title">
-                  <h3>Fast Highlights</h3>
-                  <p>AI-enhanced clips</p>
+                  <h3>Fast Highlight with AI Contextual Summary</h3>
+                  <p>AI-enhanced clips and smart summaries</p>
                 </div>
                 <motion.div 
                   className="card-arrow"
@@ -360,6 +369,142 @@ const Home = () => {
                 </motion.div>
                 
 
+              </div>
+            </div>
+          </motion.div>
+
+          {/* AI Assistant & Analytics Card */}
+          <motion.div
+            className="feature-card ai-card"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.6 }}
+            onClick={() => handleNavigate('/aicommentary')}
+            whileHover={{ y: -8, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="card-glow ai-glow"></div>
+            <div className="card-content">
+              <div className="card-header">
+                <motion.div 
+                  className="card-icon ai-icon"
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                >
+                  💬
+                </motion.div>
+                <div className="card-title">
+                  <h3>AI Assistant & Stats Bot</h3>
+                  <p>Player QA, NL→SQL cricket stats, session memory</p>
+                </div>
+                <motion.div className="card-arrow" whileHover={{ x: 5 }}>→</motion.div>
+              </div>
+
+              <div className="card-demo">
+                <div className="chat-interface-mock">
+                  <div className="chat-messages">
+                    <div className="chat-message user-message">
+                      <div className="message-bubble">How many powerplay wickets did Bumrah take last 5 matches?</div>
+                    </div>
+                    <div className="chat-message bot-message">
+                      <div className="message-bubble">
+                        <div className="typing-indicator">
+                          <span></span><span></span><span></span>
+                        </div>
+                        <div className="bot-response">
+                          📊 Bumrah took <strong>12 wickets</strong> in powerplay overs across last 5 matches
+                          <br/>• Average: 2.4 wickets/match
+                          <br/>• Strike rate: 18.5 balls/wicket
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="chat-input-mock">
+                    <input type="text" placeholder="Ask about any player stats..." disabled />
+                    <button>→</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Smart Thumbnails & Auto Branding Card */}
+          <motion.div
+            className="feature-card highlights-card"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.8 }}
+            onClick={() => handleNavigate('/highlights')}
+            whileHover={{ y: -8, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <div className="card-glow highlights-glow"></div>
+            <div className="card-content">
+              <div className="card-header">
+                <motion.div 
+                  className="card-icon highlights-icon"
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
+                >
+                  🖼️
+                </motion.div>
+                <div className="card-title">
+                  <h3>Smart Thumbnails & Auto Branding</h3>
+                  <p>Frame-based PNGs, Gemini enhancement, overlay rules</p>
+                </div>
+                <motion.div className="card-arrow" whileHover={{ x: 5 }}>→</motion.div>
+              </div>
+
+              <div className="card-demo">
+                <div className="magic-thumbnail-demo">
+                  <div className="thumbnail-process">
+                    <div className="process-step">
+                      <div className="step-icon">🎬</div>
+                      <div className="step-label">Raw Video</div>
+                    </div>
+                    <div className="magic-arrow">✨</div>
+                    <div className="process-step">
+                      <div className="step-icon">🤖</div>
+                      <div className="step-label">AI Analysis</div>
+                    </div>
+                    <div className="magic-arrow">✨</div>
+                    <div className="process-step">
+                      <div className="step-icon">🖼️</div>
+                      <div className="step-label">Smart Thumbnail</div>
+                    </div>
+                  </div>
+                  <div className="thumbnail-showcase">
+                    <div className="thumbnail-before">
+                      <div className="thumbnail-frame basic">
+                        <div className="frame-content">Basic Frame</div>
+                      </div>
+                      <span className="thumbnail-label">Before</span>
+                    </div>
+                    <div className="magic-transform">
+                      <div className="magic-wand">🪄</div>
+                      <div className="sparkles">
+                        <span className="sparkle">✨</span>
+                        <span className="sparkle">⭐</span>
+                        <span className="sparkle">✨</span>
+                      </div>
+                    </div>
+                    <div className="thumbnail-after">
+                      <div className="thumbnail-frame enhanced">
+                        <div className="frame-content">
+                          <div className="overlay-logo">CRICMATE</div>
+                          <div className="overlay-text">WICKET!</div>
+                          <div className="overlay-stats">Ball 3.4</div>
+                        </div>
+                      </div>
+                      <span className="thumbnail-label">After</span>
+                    </div>
+                  </div>
+                  <div className="magic-features">
+                    <span className="magic-pill">🎯 Best frame detection</span>
+                    <span className="magic-pill">🎨 Auto branding</span>
+                    <span className="magic-pill">📈 CTR optimized</span>
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
