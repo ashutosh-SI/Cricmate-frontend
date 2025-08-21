@@ -324,29 +324,430 @@
   background: rgba(232, 63, 126, 0.05);
 }
 
-/* Features Showcase */
-.features-showcase {
-  display: flex;
-  flex-direction: column;
-  gap: 3rem;
-  max-width: 1400px;
+/* Compact Feature Cards Row */
+.feature-cards-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  max-width: 1200px;
   width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
   transform-style: preserve-3d;
 }
 
-/* Demo Section Styling */
-.demo-section {
-  background: rgba(255, 255, 255, 0.02);
+/* Feature Card Styling */
+.feature-card {
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  padding: 2rem;
+  border-radius: 20px;
+  padding: 1.5rem;
   position: relative;
   overflow: hidden;
-  backdrop-filter: blur(15px);
-  -webkit-backdrop-filter: blur(15px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   user-select: none;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Card Glow Effects */
+.card-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 20px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.ai-glow {
+  background: radial-gradient(circle at center, rgba(232, 63, 126, 0.15), transparent 70%);
+}
+
+.scoring-glow {
+  background: radial-gradient(circle at center, rgba(129, 147, 192, 0.15), transparent 70%);
+}
+
+.highlights-glow {
+  background: radial-gradient(circle at center, rgba(251, 191, 36, 0.15), transparent 70%);
+}
+
+.feature-card:hover .card-glow {
+  opacity: 1;
+}
+
+/* Card Content */
+.card-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 1;
+}
+
+/* Card Header */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.card-icon {
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-title {
+  flex: 1;
+  margin-left: 1rem;
+}
+
+.card-title h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 0.3rem 0;
+  line-height: 1.2;
+}
+
+.card-title p {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  font-weight: 400;
+}
+
+.card-arrow {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.feature-card:hover .card-arrow {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Card Demo Content */
+.card-demo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* AI Commentary Card Specific */
+.compact-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.over-badge {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.25rem 0.6rem;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.event-pill {
+  background: linear-gradient(135deg, var(--clr-primary), #ff4081);
+  color: white;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lang-dots {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.lang-dot {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.lang-dot.active {
+  background: var(--clr-primary);
+  border-color: var(--clr-primary);
+  color: white;
+}
+
+.mini-commentary {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* Live Scoring Card Specific */
+.mini-players {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.mini-player {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.player-emoji {
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.player-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: white;
+}
+
+.player-stat {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.vs-divider {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--clr-primary);
+  background: rgba(232, 63, 126, 0.1);
+  border: 1px solid rgba(232, 63, 126, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+}
+
+.mini-event {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.6rem;
+  border-radius: 10px;
+  border-left: 3px solid var(--clr-secondary);
+}
+
+.event-desc {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Fast Highlights Card Specific */
+.mini-video {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.mini-play-btn {
+  width: 35px;
+  height: 35px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--clr-primary), #ff4081);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.video-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+}
+
+.video-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: white;
+  line-height: 1.3;
+}
+
+.video-meta {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ai-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: linear-gradient(135deg, var(--clr-primary), var(--clr-secondary));
+  color: white;
+  padding: 0.4rem 0.7rem;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  width: fit-content;
+  margin-bottom: 0.5rem;
+}
+
+.ai-spark {
+  font-size: 0.8rem;
+}
+
+.feature-pills {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.pill {
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: var(--clr-accent);
+  padding: 0.25rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+/* Feature Card Hover Effects */
+.ai-card:hover {
+  border-color: rgba(232, 63, 126, 0.3);
+  box-shadow: 
+    0 20px 60px rgba(232, 63, 126, 0.15),
+    0 0 0 1px rgba(232, 63, 126, 0.1);
+}
+
+.scoring-card:hover {
+  border-color: rgba(129, 147, 192, 0.3);
+  box-shadow: 
+    0 20px 60px rgba(129, 147, 192, 0.15),
+    0 0 0 1px rgba(129, 147, 192, 0.1);
+}
+
+.highlights-card:hover {
+  border-color: rgba(251, 191, 36, 0.3);
+  box-shadow: 
+    0 20px 60px rgba(251, 191, 36, 0.15),
+    0 0 0 1px rgba(251, 191, 36, 0.1);
+}
+
+/* Card Icon Specific Animations */
+.ai-icon {
+  background: linear-gradient(135deg, rgba(232, 63, 126, 0.1), rgba(255, 64, 129, 0.1));
+  border-color: rgba(232, 63, 126, 0.2);
+}
+
+.scoring-icon {
+  background: linear-gradient(135deg, rgba(129, 147, 192, 0.1), rgba(155, 114, 203, 0.1));
+  border-color: rgba(129, 147, 192, 0.2);
+}
+
+.highlights-icon {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(244, 156, 70, 0.1));
+  border-color: rgba(251, 191, 36, 0.2);
+}
+
+/* Responsive Design for Feature Cards */
+@media (max-width: 1024px) {
+  .feature-cards-row {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    max-width: 500px;
+  }
+  
+  .feature-card {
+    height: auto;
+    min-height: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .feature-cards-row {
+    gap: 1rem;
+    padding: 0 0.5rem;
+  }
+  
+  .feature-card {
+    padding: 1.25rem;
+    min-height: 220px;
+  }
+  
+  .card-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 1.8rem;
+  }
+  
+  .card-title h3 {
+    font-size: 1rem;
+  }
+  
+  .card-title p {
+    font-size: 0.8rem;
+  }
 }
 
 .demo-section::before {

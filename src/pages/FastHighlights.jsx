@@ -1351,12 +1351,8 @@ const FastHighlights = () => {
                         <div className="overlay-content">
                           <h3>AI Enhancements</h3>
                           <ul>
-                            <li>🎯 Enhanced clarity and sharpness</li>
-                            <li>🌈 Improved color grading</li>
-                            <li>⚡ Motion smoothing</li>
-                            <li>🔍 Detail enhancement</li>
-                            <li>🎬 Stabilization improvements</li>
-                            <li>✨ Noise reduction</li>
+                            <li>🎯 AI generated voice over for over summary</li>
+
                           </ul>
                         </div>
                       </motion.div>
@@ -1634,6 +1630,15 @@ const FastHighlights = () => {
                         value={audioMuted ? 0 : audioVolume}
                         onChange={(e) => handleAudioVolumeChange(parseFloat(e.target.value))}
                         className="volume-range"
+                        style={{
+                          background: `linear-gradient(
+                            to right,
+                            var(--clr-primary) 0%,
+                            var(--clr-primary) ${(audioMuted ? 0 : audioVolume) * 100}%,
+                            rgba(255,255,255,0.1) ${(audioMuted ? 0 : audioVolume) * 100}%,
+                            rgba(255,255,255,0.1) 100%
+                          )`
+                        }}
                       />
                     </div>
                   </div>

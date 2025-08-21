@@ -138,98 +138,69 @@ const Home = () => {
             commentary, <span className="highlight-accent">fast highlights</span>, and real-time scoring
           </motion.p>
 
-          <motion.div 
-            className="cta-buttons"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, delay: 0.6, ease: "easeOut" }}
-          >
-            <motion.button 
-              className="cta-primary"
-              onClick={() => handleNavigate('/highlights')}
-              whileHover={{ 
-                scale: 1.05, 
-                y: -2,
-                boxShadow: "0 20px 40px rgba(232, 63, 126, 0.4)"
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <span className="btn-content">
-                <span className="btn-icon">⚡</span>
-                Explore Highlights
-              </span>
-            </motion.button>
-            
-            <motion.button 
-              className="cta-secondary"
-              onClick={() => handleNavigate('/aicommentary')}
-              whileHover={{ 
-                scale: 1.05, 
-                y: -2,
-                backgroundColor: "rgba(255, 255, 255, 0.1)"
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <span className="btn-content">
-                <span className="btn-icon">🤖</span>
-                AI Commentary
-              </span>
-            </motion.button>
-          </motion.div>
+
         </motion.div>
 
-        {/* Interactive Feature Demos */}
+        {/* Compact Feature Cards Row */}
         <motion.div 
-          className="features-showcase"
-          initial={{ opacity: 0, y: 60 }}
+          className="feature-cards-row"
+          initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.2, delay: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
         >
           
-          {/* AI Commentary Demo */}
+          {/* AI Commentary Card */}
           <motion.div
-            className="demo-section ai-commentary-demo"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 1 }}
+            className="feature-card ai-card"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1 }}
             onClick={() => handleNavigate('/aicommentary')}
+            whileHover={{ y: -8, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <div className="demo-header">
-              <motion.div className="demo-icon">🤖</motion.div>
-              <div className="demo-title-section">
-                <h3>AI Commentary and Cricket Assistant Bot</h3>
-                <p>Multi-language insights and an interactive assistant</p>
+            <div className="card-glow ai-glow"></div>
+            <div className="card-content">
+              <div className="card-header">
+                <motion.div 
+                  className="card-icon ai-icon"
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                >
+                  🤖
+                </motion.div>
+                <div className="card-title">
+                  <h3>AI Commentary</h3>
+                  <p>Multi-language insights</p>
+                </div>
+                <motion.div 
+                  className="card-arrow"
+                  whileHover={{ x: 5 }}
+                >
+                  →
+                </motion.div>
               </div>
-              <motion.div 
-                className="explore-btn"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Explore →
-              </motion.div>
-            </div>
-            
-            <div className="demo-content">
-              <div className="commentary-demo-card">
-                <div className="match-info">
-                  <span className="over-info">Over {mockCommentary.over}</span>
+              
+              <div className="card-demo">
+                <div className="compact-info">
+                  <span className="over-badge">Over {mockCommentary.over}</span>
                   <motion.span 
-                    className={`event-badge ${mockCommentary.event.toLowerCase()}`}
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+                    className={`event-pill ${mockCommentary.event.toLowerCase()}`}
+                    animate={{ scale: [1, 1.05, 1] }}
+                    transition={{ duration: 0.8, repeat: Infinity, repeatDelay: 2 }}
                   >
                     {mockCommentary.event}
                   </motion.span>
                 </div>
                 
-                <div className="language-selector">
+                <div className="lang-dots">
                   {languages.map((lang, index) => (
                     <motion.div
                       key={lang}
-                      className={`lang-indicator ${index === currentLanguage ? 'active' : ''}`}
+                      className={`lang-dot ${index === currentLanguage ? 'active' : ''}`}
                       animate={{ 
-                        scale: index === currentLanguage ? 1.1 : 1,
-                        opacity: index === currentLanguage ? 1 : 0.5 
+                        scale: index === currentLanguage ? 1.2 : 1,
+                        opacity: index === currentLanguage ? 1 : 0.4 
                       }}
                       transition={{ duration: 0.3 }}
                     >
@@ -241,156 +212,137 @@ const Home = () => {
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentLanguage}
-                    className="commentary-text"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.5 }}
+                    className="mini-commentary"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.4 }}
                   >
-                    {mockCommentary.languages[languages[currentLanguage]]}
+                    {mockCommentary.languages[languages[currentLanguage]].slice(0, 60)}...
                   </motion.div>
                 </AnimatePresence>
-                
-                <motion.div 
-                  className="auto-cycle-indicator"
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  Auto-cycling languages...
-                </motion.div>
               </div>
             </div>
           </motion.div>
 
-          {/* Live Scoring Demo */}
+          {/* Live Scoring Card */}
           <motion.div
-            className="demo-section live-scoring-demo"
-            initial={{ opacity: 0, y: 50 }}
+            className="feature-card scoring-card"
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.2 }}
+            transition={{ duration: 0.6, delay: 1.2 }}
             onClick={() => handleNavigate('/scoring')}
+            whileHover={{ y: -8, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <div className="demo-header">
-              <motion.div className="demo-icon">📊</motion.div>
-              <div className="demo-title-section">
-                <h3>Live Scoring</h3>
-                <p>Real-time match statistics</p>
-              </div>
-              <motion.div 
-                className="explore-btn"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Explore →
-              </motion.div>
-            </div>
-            
-            <div className="demo-content">
-              <div className="scoring-cards">
-                <div className="player-card batsman">
-                  <div className="player-info">
-                    <span className="player-icon">🏏</span>
-                    <div>
-                      <h4>{mockScoring.batsman.name}</h4>
-                      <p>On Strike</p>
-                    </div>
-                  </div>
-                  <div className="player-stats">
-                    <div className="stat-item">
-                      <span className="stat-value">{mockScoring.batsman.runs}</span>
-                      <span className="stat-label">Runs</span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="stat-value">{mockScoring.batsman.balls}</span>
-                      <span className="stat-label">Balls</span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="stat-value">{mockScoring.batsman.strikeRate}</span>
-                      <span className="stat-label">SR</span>
-                    </div>
-                  </div>
+            <div className="card-glow scoring-glow"></div>
+            <div className="card-content">
+              <div className="card-header">
+                <motion.div 
+                  className="card-icon scoring-icon"
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 2 }}
+                >
+                  📊
+                </motion.div>
+                <div className="card-title">
+                  <h3>Live Scoring</h3>
+                  <p>Real-time stats</p>
                 </div>
-                
-                <div className="player-card bowler">
-                  <div className="player-info">
-                    <span className="player-icon">🥎</span>
-                    <div>
-                      <h4>{mockScoring.bowler.name}</h4>
-                      <p>Bowling</p>
-                    </div>
-                  </div>
-                  <div className="player-stats">
-                    <div className="stat-item">
-                      <span className="stat-value">{mockScoring.bowler.overs}</span>
-                      <span className="stat-label">Overs</span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="stat-value">{mockScoring.bowler.wickets}</span>
-                      <span className="stat-label">Wickets</span>
-                    </div>
-                    <div className="stat-item">
-                      <span className="stat-value">{mockScoring.bowler.economy}</span>
-                      <span className="stat-label">Econ</span>
-                    </div>
-                  </div>
-                </div>
+                <motion.div 
+                  className="card-arrow"
+                  whileHover={{ x: 5 }}
+                >
+                  →
+                </motion.div>
               </div>
               
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentEvent}
-                  className="live-event"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.4 }}
-                >
-                  <span className={`event-type ${mockScoring.events[currentEvent].type.toLowerCase()}`}>
-                    {mockScoring.events[currentEvent].type}
-                  </span>
-                  <span className="event-description">
-                    {mockScoring.events[currentEvent].description}
-                  </span>
-                </motion.div>
-              </AnimatePresence>
+              <div className="card-demo">
+                <div className="mini-players">
+                  <div className="mini-player batsman">
+                    <span className="player-emoji">🏏</span>
+                    <div className="player-info">
+                      <span className="player-name">{mockScoring.batsman.name}</span>
+                      <span className="player-stat">{mockScoring.batsman.runs}*({mockScoring.batsman.balls})</span>
+                    </div>
+                  </div>
+                  
+                  <div className="vs-divider">VS</div>
+                  
+                  <div className="mini-player bowler">
+                    <span className="player-emoji">🥎</span>
+                    <div className="player-info">
+                      <span className="player-name">{mockScoring.bowler.name}</span>
+                      <span className="player-stat">{mockScoring.bowler.wickets}/{mockScoring.bowler.runs}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentEvent}
+                    className="mini-event"
+                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: -10 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <span className={`event-pill ${mockScoring.events[currentEvent].type.toLowerCase()}`}>
+                      {mockScoring.events[currentEvent].type}
+                    </span>
+                    <span className="event-desc">{mockScoring.events[currentEvent].description}</span>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
             </div>
           </motion.div>
 
-          {/* Fast Highlights Demo */}
+          {/* Fast Highlights Card */}
           <motion.div
-            className="demo-section highlights-demo"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 1.4 }}
+            className="feature-card highlights-card"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.4 }}
             onClick={() => handleNavigate('/highlights')}
+            whileHover={{ y: -8, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            <div className="demo-header">
-              <motion.div className="demo-icon">⚡</motion.div>
-              <div className="demo-title-section">
-                <h3>Fast Highlight with AI Contextual Summary</h3>
-                <p>AI-enhanced highlights with smart summaries</p>
+            <div className="card-glow highlights-glow"></div>
+            <div className="card-content">
+              <div className="card-header">
+                <motion.div 
+                  className="card-icon highlights-icon"
+                  animate={{ rotate: [0, 360] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                >
+                  ⚡
+                </motion.div>
+                <div className="card-title">
+                  <h3>Fast Highlights</h3>
+                  <p>AI-enhanced clips</p>
+                </div>
+                <motion.div 
+                  className="card-arrow"
+                  whileHover={{ x: 5 }}
+                >
+                  →
+                </motion.div>
               </div>
-              <motion.div 
-                className="explore-btn"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                Explore →
-              </motion.div>
-            </div>
-            
-            <div className="demo-content">
-              <div className="highlight-player">
-                <div className="video-placeholder">
+              
+              <div className="card-demo">
+                <div className="mini-video">
                   <motion.div 
-                    className="play-button"
-                    animate={{ scale: [1, 1.1, 1] }}
+                    className="mini-play-btn"
+                    animate={{ 
+                      scale: [1, 1.15, 1],
+                      opacity: [0.7, 1, 0.7] 
+                    }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
                     ▶
                   </motion.div>
-                  <div className="video-overlay">
-                    <h4>{mockHighlights.title}</h4>
+                  <div className="video-info">
+                    <span className="video-title">{mockHighlights.title}</span>
                     <div className="video-meta">
                       <span>⏱️ {mockHighlights.duration}</span>
                       <span>👁️ {mockHighlights.views}</span>
@@ -399,36 +351,15 @@ const Home = () => {
                 </div>
                 
                 <motion.div 
-                  className="ai-enhancement-tag"
-                  animate={{ opacity: [0.7, 1, 0.7] }}
+                  className="ai-badge"
+                  animate={{ opacity: [0.6, 1, 0.6] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  🤖 AI Enhanced
+                  <span className="ai-spark">✨</span>
+                  AI Enhanced
                 </motion.div>
                 
-                <div className="highlight-features">
-                  <motion.div 
-                    className="feature-tag"
-                    animate={{ y: [0, -2, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
-                  >
-                    📱 Vertical & Horizontal
-                  </motion.div>
-                  <motion.div 
-                    className="feature-tag"
-                    animate={{ y: [0, -2, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
-                  >
-                    🎧 Audio Commentary
-                  </motion.div>
-                  <motion.div 
-                    className="feature-tag"
-                    animate={{ y: [0, -2, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity, delay: 0.6 }}
-                  >
-                    🎬 Smart Editing
-                  </motion.div>
-                </div>
+
               </div>
             </div>
           </motion.div>
